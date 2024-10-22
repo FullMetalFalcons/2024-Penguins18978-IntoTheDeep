@@ -14,6 +14,13 @@ git checkout competition
 git fetch pinpoint
 git merge pinpoint/goBILDA-Odometry-Driver
 ```
+
+or
+
+`git checkout -p pinpoint/goBILDA-Odometry-Driver .\TeamCode\src\main\java\org\firstinspires\ftc\teamcode\GoBildaPinpointDriver.java` (for a single file)
+
+(`git merge --abort` is your friend is something isn't right)
+
 Then commit it as usual.
 
 If there is a conflict with README.md, just revert back to ours:
