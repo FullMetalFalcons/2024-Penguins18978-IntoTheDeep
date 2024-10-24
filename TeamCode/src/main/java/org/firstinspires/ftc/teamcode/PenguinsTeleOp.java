@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 @TeleOp
 public class PenguinsTeleOp extends LinearOpMode {
     //Initialize motors, servos, sensors, imus, etc.
-    DcMotorEx m1, m2, m3, m4, rArm, lArm;
+    DcMotorEx m1, m2, m3, m4, Arm, Slide;
 
     public void runOpMode() {
 
@@ -20,15 +20,15 @@ public class PenguinsTeleOp extends LinearOpMode {
         m3 = (DcMotorEx) hardwareMap.dcMotor.get("leftBack");
         m4 = (DcMotorEx) hardwareMap.dcMotor.get("rightBack");
 
-        rArm = (DcMotorEx) hardwareMap.dcMotor.get("rightArm");
-        lArm = (DcMotorEx) hardwareMap.dcMotor.get("leftArm");
+        Arm = (DcMotorEx) hardwareMap.dcMotor.get("arm");
+        Slide = (DcMotorEx) hardwareMap.dcMotor.get("slide");
 
         //Set them to the correct modes
         //This reverses the motor direction
         m1.setDirection(DcMotorSimple.Direction.REVERSE);
         m3.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        rArm.setDirection(DcMotorSimple.Direction.REVERSE);
+        Arm.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //This resets the encoder values when the code is initialized
         m1.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
@@ -41,6 +41,9 @@ public class PenguinsTeleOp extends LinearOpMode {
         m2.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         m3.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         m4.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+
+        Arm.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        Slide.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
 
         //This lets you look at encoder values while the OpMode is active
         //If you have a STOP_AND_RESET_ENCODER, make sure to put this below it
@@ -92,16 +95,25 @@ public class PenguinsTeleOp extends LinearOpMode {
             // Arm Code
             if (gamepad1.right_bumper) {
                 // Arm Up
-                rArm.setPower(0.5);
-                lArm.setPower(0.5);
+                Arm.setPower(-1);
             } else if (gamepad1.right_trigger > 0) {
                 // Arm Down
-                rArm.setPower(-0.5);
-                lArm.setPower(-0.5);
+                Arm.setPower(1);
             } else {
                 // At Rest
-                rArm.setPower(0);
-                lArm.setPower(0);
+                Arm.setPower(0);
+            }
+
+            // Slide Code
+            if (gamepad1.left_bumper) {
+                // Arm Up
+                Slide.setPower(-1);
+            } else if (gamepad1.left_trigger > 0) {
+                // Arm Down
+                Slide.setPower(1);
+            } else {
+                // At Rest
+                Slide.setPower(0);
             }
 
         } // opModeActive loop ends
