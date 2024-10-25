@@ -4,12 +4,14 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 @TeleOp
 public class PenguinsTeleOp extends LinearOpMode {
     //Initialize motors, servos, sensors, imus, etc.
     DcMotorEx m1, m2, m3, m4, Arm, Slide;
+    Servo Claw;
 
     public void runOpMode() {
 
@@ -19,9 +21,10 @@ public class PenguinsTeleOp extends LinearOpMode {
         m2 = (DcMotorEx) hardwareMap.dcMotor.get("rightFront");
         m3 = (DcMotorEx) hardwareMap.dcMotor.get("leftBack");
         m4 = (DcMotorEx) hardwareMap.dcMotor.get("rightBack");
-
         Arm = (DcMotorEx) hardwareMap.dcMotor.get("arm");
         Slide = (DcMotorEx) hardwareMap.dcMotor.get("slide");
+
+        Claw = (Servo) hardwareMap.servo.get("claw");
 
         //Set them to the correct modes
         //This reverses the motor direction
@@ -114,6 +117,15 @@ public class PenguinsTeleOp extends LinearOpMode {
             } else {
                 // At Rest
                 Slide.setPower(0);
+            }
+
+            // Claw Code
+            if (gamepad1.y) {
+                // Open Position
+                Claw.setPosition(0.4);
+            } else {
+                // Closed Position
+                Claw.setPosition(0.0);
             }
 
         } // opModeActive loop ends
