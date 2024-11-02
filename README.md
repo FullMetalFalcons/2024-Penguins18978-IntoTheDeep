@@ -1,4 +1,24 @@
-# SparkFun OTOS Quickstart for Roadrunner 1.0
+# Full Metal Falcons Notes
+This branch is a virtual merge of j5155's work to bring the Pinpoint Odometry Computer (along with
+some other OTOS sensor) into RoadRunner.  Since this wasn't merged into the acmerobotics RR repo
+we need to do this merge here.  This branch can then be merged into our `competition` branch.
+
+## To get the latest pinpoint changes
+Do this once to setup the remote to j5155:
+
+`git remote add pinpoint_j5155_rr https://github.com/jdhs-ftc/sparkfun-otos-quickstart`
+
+Then merge in the latest:
+
+```bash
+git checkout pinpoint_rr_master
+git fetch pinpoint_j5155_rr
+git merge pinpoint_j5155_rr/pinpoint
+```
+`git merge --abort` is your friend if things go sideways
+
+
+# (original) SparkFun OTOS Quickstart for Roadrunner 1.0
 
 The SparkFun OTOS or Optical Tracking Odometry Sensor is an optical-based odometry sensor with an integrated IMU.
 This repository allows teams to integrate it into Roadrunner as a drop-in replacement.
