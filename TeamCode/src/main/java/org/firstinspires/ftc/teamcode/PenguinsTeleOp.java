@@ -16,7 +16,7 @@ import java.util.Locale;
 @TeleOp
 public class PenguinsTeleOp extends LinearOpMode {
     //Initialize motors, servos, sensors, imus, etc.
-    DcMotorEx m1, m2, m3, m4, Arm, Slide;
+    DcMotorEx m1, m2, m3, m4, Arm, Slide, Hanger;
     Servo Claw;
 
     // Declare OpMode member for the Odometry Computer
@@ -32,6 +32,7 @@ public class PenguinsTeleOp extends LinearOpMode {
         m4 = (DcMotorEx) hardwareMap.dcMotor.get("rightBack");
         Arm = (DcMotorEx) hardwareMap.dcMotor.get("arm");
         Slide = (DcMotorEx) hardwareMap.dcMotor.get("slide");
+        Hanger = (DcMotorEx) hardwareMap.dcMotor.get("linearActuator");
 
         Claw = (Servo) hardwareMap.servo.get("claw");
 
@@ -56,6 +57,7 @@ public class PenguinsTeleOp extends LinearOpMode {
 
         Arm.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         Slide.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        Hanger.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         //This lets you look at encoder values while the OpMode is active
         //If you have a STOP_AND_RESET_ENCODER, make sure to put this below it
@@ -136,13 +138,25 @@ public class PenguinsTeleOp extends LinearOpMode {
                 Slide.setPower(0);
             }
 
+            // Hanging Arm Code
+            if (gamepad2.left_bumper) {
+                // Actuator Out
+                Hanger.setPower(-1);
+            } else if (gamepad2.left_trigger > 0) {
+                // Actuator In
+                Hanger.setPower(1);
+            } else {
+                // At Rest
+                Hanger.setPower(0);
+            }
+
             // Claw Code
             if (gamepad1.y) {
                 // Open Position
-                Claw.setPosition(0.0);
+                Claw.setPosition(0.8);
             } else {
                 // Closed Position
-                Claw.setPosition(0.4);
+                Claw.setPosition(0.87 );
             }
 
 
