@@ -7,11 +7,20 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+
+import java.util.Locale;
+
 @TeleOp
 public class PenguinsTeleOp extends LinearOpMode {
     //Initialize motors, servos, sensors, imus, etc.
     DcMotorEx m1, m2, m3, m4, Arm, Slide;
     Servo Claw;
+
+    // Declare OpMode member for the Odometry Computer
+    GoBildaPinpointDriver odo;
 
     public void runOpMode() {
 
@@ -55,6 +64,14 @@ public class PenguinsTeleOp extends LinearOpMode {
         m3.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         m4.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+
+
+        // Pinpoint computer setup
+        odo = hardwareMap.get(GoBildaPinpointDriver.class,"odo");
+        odo.setOffsets(39.0, -47.0);
+        odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.FORWARD);
+        odo.resetPosAndIMU();
 
         waitForStart();
 
@@ -122,11 +139,25 @@ public class PenguinsTeleOp extends LinearOpMode {
             // Claw Code
             if (gamepad1.y) {
                 // Open Position
-                Claw.setPosition(0.4);
+                Claw.setPosition(0.0);
             } else {
                 // Closed Position
-                Claw.setPosition(0.0);
+                Claw.setPosition(0.4);
             }
+
+
+
+            odo.update();
+
+            Pose2D pos = odo.getPosition();
+            String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.MM), pos.getY(DistanceUnit.MM), pos.getHeading(AngleUnit.DEGREES));
+            telemetry.addData("Position", data);
+
+            Pose2D vel = odo.getVelocity();
+            String velocity = String.format(Locale.US,"{XVel: %.3f, YVel: %.3f, HVel: %.3f}", vel.getX(DistanceUnit.MM), vel.getY(DistanceUnit.MM), vel.getHeading(AngleUnit.DEGREES));
+            telemetry.addData("Velocity", velocity);
+
+            telemetry.update();
 
         } // opModeActive loop ends
     }
