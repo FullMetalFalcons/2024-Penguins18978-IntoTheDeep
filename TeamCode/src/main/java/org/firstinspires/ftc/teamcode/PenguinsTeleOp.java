@@ -70,9 +70,9 @@ public class PenguinsTeleOp extends LinearOpMode {
 
         // Pinpoint computer setup
         odo = hardwareMap.get(GoBildaPinpointDriver.class,"odo");
-        odo.setOffsets(39.0, -47.0);
+        odo.setOffsets(131.76, -131.76);
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.FORWARD);
+        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         odo.resetPosAndIMU();
 
         waitForStart();
@@ -156,7 +156,7 @@ public class PenguinsTeleOp extends LinearOpMode {
                 Claw.setPosition(0.8);
             } else {
                 // Closed Position
-                Claw.setPosition(0.87 );
+                Claw.setPosition(0.87);
             }
 
 
@@ -164,11 +164,11 @@ public class PenguinsTeleOp extends LinearOpMode {
             odo.update();
 
             Pose2D pos = odo.getPosition();
-            String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.MM), pos.getY(DistanceUnit.MM), pos.getHeading(AngleUnit.DEGREES));
+            String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.INCH), pos.getY(DistanceUnit.INCH), pos.getHeading(AngleUnit.DEGREES));
             telemetry.addData("Position", data);
 
             Pose2D vel = odo.getVelocity();
-            String velocity = String.format(Locale.US,"{XVel: %.3f, YVel: %.3f, HVel: %.3f}", vel.getX(DistanceUnit.MM), vel.getY(DistanceUnit.MM), vel.getHeading(AngleUnit.DEGREES));
+            String velocity = String.format(Locale.US,"{XVel: %.3f, YVel: %.3f, HVel: %.3f}", vel.getX(DistanceUnit.INCH), vel.getY(DistanceUnit.INCH), vel.getHeading(AngleUnit.DEGREES));
             telemetry.addData("Velocity", velocity);
 
             telemetry.update();
