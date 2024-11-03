@@ -1,19 +1,17 @@
 # Full Metal Falcons Notes
-This branch is a virtual merge of j5155's work to bring the Pinpoint Odometry Computer (along with
+This branch is a working branch of j5155's work to bring the Pinpoint Odometry Computer (along with
 some other OTOS sensor) into RoadRunner.  Since this wasn't merged into the acmerobotics RR repo
-we need to do this merge here.  This branch can then be merged into our `competition` branch.
+we need to do this merge here.  
+
+This branch is a merge of j5155's work and the Penguins work.
 
 ## To get the latest pinpoint changes
-Do this once to setup the remote to j5155:
+See the instructions on the `pinpoint_rr_master` branch first
 
-`git remote add pinpoint_j5155_rr https://github.com/jdhs-ftc/sparkfun-otos-quickstart`
-
-Then merge in the latest:
-
+Then merge in the latest here:
 ```bash
-git checkout pinpoint_rr_master
-git fetch pinpoint_j5155_rr
-git merge pinpoint_j5155_rr/pinpoint
+git checkout pinpoint_rr
+git merge pinpoint_rr_master
 ```
 `git merge --abort` is your friend if things go sideways
 
