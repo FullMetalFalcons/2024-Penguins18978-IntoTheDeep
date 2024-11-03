@@ -7,9 +7,10 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.PoseVelocity2d;
+import com.acmerobotics.roadrunner.ftc.GoBildaPinpointDriverRR;
 
 import java.util.Locale;
 
@@ -18,9 +19,10 @@ public class PenguinsTeleOp extends LinearOpMode {
     //Initialize motors, servos, sensors, imus, etc.
     DcMotorEx m1, m2, m3, m4, Arm, Slide, Hanger;
     Servo Claw;
+    public static PinpointDrive.Params PINPOINT_PARAMS = new PinpointDrive.Params();
 
     // Declare OpMode member for the Odometry Computer
-    GoBildaPinpointDriver odo;
+    GoBildaPinpointDriverRR odo;
 
     public void runOpMode() {
 
@@ -69,10 +71,10 @@ public class PenguinsTeleOp extends LinearOpMode {
 
 
         // Pinpoint computer setup
-        odo = hardwareMap.get(GoBildaPinpointDriver.class,"odo");
-        odo.setOffsets(131.76, -131.76);
-        odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
+        odo = hardwareMap.get(GoBildaPinpointDriverRR.class, PINPOINT_PARAMS.pinpointDeviceName);
+        odo.setOffsets(DistanceUnit.MM.fromInches(PINPOINT_PARAMS.xOffset), DistanceUnit.MM.fromInches(PINPOINT_PARAMS.yOffset));
+        odo.setEncoderResolution(PINPOINT_PARAMS.encoderResolution);
+        odo.setEncoderDirections(PINPOINT_PARAMS.xDirection, PINPOINT_PARAMS.yDirection);
         odo.resetPosAndIMU();
 
         waitForStart();
@@ -163,13 +165,31 @@ public class PenguinsTeleOp extends LinearOpMode {
 
             odo.update();
 
-            Pose2D pos = odo.getPosition();
-            String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.INCH), pos.getY(DistanceUnit.INCH), pos.getHeading(AngleUnit.DEGREES));
+            /*
+            gets the current Position (x & y in inches, and heading in degrees) of the robot, and prints it.
+             */
+            Pose2d pos = odo.getPositionRR();
+            String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.position.x, pos.position.y, Math.toDegrees(pos.heading.toDouble()));
             telemetry.addData("Position", data);
 
-            Pose2D vel = odo.getVelocity();
-            String velocity = String.format(Locale.US,"{XVel: %.3f, YVel: %.3f, HVel: %.3f}", vel.getX(DistanceUnit.INCH), vel.getY(DistanceUnit.INCH), vel.getHeading(AngleUnit.DEGREES));
+            /*
+            gets the current Velocity (x & y in inches/sec and heading in degrees/sec) and prints it.
+             */
+            PoseVelocity2d vel = odo.getVelocityRR();
+            String velocity = String.format(Locale.US,"{XVel: %.3f, YVel: %.3f, HVel: %.3f}", vel.linearVel.x, vel.linearVel.y, Math.toDegrees(vel.angVel));
             telemetry.addData("Velocity", velocity);
+            telemetry.addData("Pinpoint Frequency", odo.getFrequency()); //prints/gets the current refresh rate of the Pinpoint
+
+            /*
+            Gets the Pinpoint device status. Pinpoint can reflect a few states. But we'll primarily see
+            READY: the device is working as normal
+            CALIBRATING: the device is calibrating and outputs are put on hold
+            NOT_READY: the device is resetting from scratch. This should only happen after a power-cycle
+            FAULT_NO_PODS_DETECTED - the device does not detect any pods plugged in
+            FAULT_X_POD_NOT_DETECTED - The device does not detect an X pod plugged in
+            FAULT_Y_POD_NOT_DETECTED - The device does not detect a Y pod plugged in
+            */
+            telemetry.addData("Status", odo.getDeviceStatus());
 
             telemetry.update();
 
