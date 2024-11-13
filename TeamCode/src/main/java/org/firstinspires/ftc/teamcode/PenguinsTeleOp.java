@@ -49,6 +49,8 @@ public class PenguinsTeleOp extends LinearOpMode {
         m3.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         m4.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
 
+        Hanger.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
         //This makes the wheels tense up and stay in position when it is not moving, opposite is FLOAT
         m1.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         m2.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
@@ -65,6 +67,8 @@ public class PenguinsTeleOp extends LinearOpMode {
         m2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         m3.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         m4.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        Hanger.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
 
@@ -142,21 +146,27 @@ public class PenguinsTeleOp extends LinearOpMode {
             if (gamepad2.left_bumper) {
                 // Actuator Out
                 Hanger.setPower(-1);
-            } else if (gamepad2.left_trigger > 0) {
-                // Actuator In
-                Hanger.setPower(1);
             } else {
-                // At Rest
-                Hanger.setPower(0);
+                /* Add:
+                   Hanger.getCurrentPosition() < -500 ||
+                   to make the arm auto retract
+                 */
+                if (gamepad2.left_trigger > 0) {
+                    // Retract if out
+                    Hanger.setPower(1);
+                } else {
+                    // Stop if fully back
+                    Hanger.setPower(0);
+                }
             }
 
             // Claw Code
             if (gamepad1.y) {
                 // Open Position
-                Claw.setPosition(0.8);
+                Claw.setPosition(0.6);
             } else {
                 // Closed Position
-                Claw.setPosition(0.87);
+                Claw.setPosition(0.3);
             }
 
 
