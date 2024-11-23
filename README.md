@@ -28,6 +28,8 @@ git checkout competition
 git merge master
 ```
 
+in case of issues `git merge --abort` is your friend
+
 # Road Runner Quickstart
 
 Check out the [docs](https://rr.brott.dev/docs/v1-0/tuning/).
