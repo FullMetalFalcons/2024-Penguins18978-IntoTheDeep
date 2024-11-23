@@ -2,6 +2,15 @@
 
 Check out the [docs](https://rr.brott.dev/docs/v1-0/tuning/).
 
+# To get Latest Roadrunner Files
+
+Follow the Readme on the `master` branch of this repo to get the latest RR files then
+```bash
+git checkout competition
+git merge master
+git push origin competition
+```
+
 # To Get Latest goBILDA Odometry Computer Files
 
 Run this once to setup a remote URL called `pinpoint`:
