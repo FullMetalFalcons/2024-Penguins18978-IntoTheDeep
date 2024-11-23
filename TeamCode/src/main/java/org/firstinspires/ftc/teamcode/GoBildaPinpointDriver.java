@@ -52,7 +52,7 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
 
     private int deviceStatus   = 0;
     private int loopTime       = 0;
-    private int xEncoderValue  = 0;
+    private int  xEncoderValue  = 0;
     private int yEncoderValue  = 0;
     private float xPosition    = 0;
     private float yPosition    = 0;
