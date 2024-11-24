@@ -32,8 +32,8 @@ public class PinpointDrive extends MecanumDrive {
          */
         //These are tuned for 3110-0002-0001 Product Insight #1
         // RR localizer note: These units are inches, presets are converted from mm (which is why they are inexact)
-        public double xOffset =  131.76;  //5 3/16"
-        public double yOffset = -131.76;  //5 3/16"
+        public double xOffset =  5.1875;  //5 3/16"   or   131.76mm
+        public double yOffset = -5.1875;  //5 3/16"   or   131.76mm
 
         public String pinpointDeviceName = "odo";
 
