@@ -52,25 +52,25 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Config
-public final class MecanumDrive {
+public class MecanumDrive {
     public static class Params {
         // IMU orientation
         // TODO: fill in these values based on
         //   see https://ftc-docs.firstinspires.org/en/latest/programming_resources/imu/imu.html?highlight=imu#physical-hub-mounting
         public RevHubOrientationOnRobot.LogoFacingDirection logoFacingDirection =
-                RevHubOrientationOnRobot.LogoFacingDirection.UP;
+                RevHubOrientationOnRobot.LogoFacingDirection.RIGHT;
         public RevHubOrientationOnRobot.UsbFacingDirection usbFacingDirection =
-                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD;
+                RevHubOrientationOnRobot.UsbFacingDirection.UP;
 
         // drive model parameters
-        public double inPerTick = 1;
-        public double lateralInPerTick = inPerTick;
-        public double trackWidthTicks = 0;
+        public double inPerTick = 1.0; // SparkFun OTOS Note: you can probably leave this at 1
+        public double lateralInPerTick = 0.71931971;
+        public double trackWidthTicks = 12.5686455;
 
         // feedforward parameters (in tick units)
-        public double kS = 0;
-        public double kV = 0;
-        public double kA = 0;
+        public double kS = 2.024498;
+        public double kV = 0.11;
+        public double kA = 0.05;
 
         // path profile parameters (in inches)
         public double maxWheelVel = 50;
@@ -78,17 +78,18 @@ public final class MecanumDrive {
         public double maxProfileAccel = 50;
 
         // turn profile parameters (in radians)
-        public double maxAngVel = Math.PI; // shared with path
-        public double maxAngAccel = Math.PI;
+        public double maxAngVel = Math.PI/2; // shared with path
+        public double maxAngAccel = Math.PI/2;
 
         // path controller gains
-        public double axialGain = 0.0;
-        public double lateralGain = 0.0;
-        public double headingGain = 0.0; // shared with turn
+        public double axialGain = 5.0;
+        public double lateralGain = 8.0;
+        public double headingGain = 12.0; // shared with turn
+        // Was 5.0, 6.0, 40
 
-        public double axialVelGain = 0.0;
+        public double axialVelGain = 0.1;
         public double lateralVelGain = 0.0;
-        public double headingVelGain = 0.0; // shared with turn
+        public double headingVelGain = 0.2; // shared with turn
     }
 
     public static Params PARAMS = new Params();
@@ -115,7 +116,7 @@ public final class MecanumDrive {
     public final Localizer localizer;
     public Pose2d pose;
 
-    private final LinkedList<Pose2d> poseHistory = new LinkedList<>();
+    public final LinkedList<Pose2d> poseHistory = new LinkedList<>();
 
     private final DownsampledWriter estimatedPoseWriter = new DownsampledWriter("ESTIMATED_POSE", 50_000_000);
     private final DownsampledWriter targetPoseWriter = new DownsampledWriter("TARGET_POSE", 50_000_000);
@@ -126,7 +127,7 @@ public final class MecanumDrive {
         public final Encoder leftFront, leftBack, rightBack, rightFront;
         public final IMU imu;
 
-        private int lastLeftFrontPos, lastLeftBackPos, lastRightBackPos, lastRightFrontPos;
+        private double lastLeftFrontPos, lastLeftBackPos, lastRightBackPos, lastRightFrontPos;
         private Rotation2d lastHeading;
         private boolean initialized;
 
@@ -228,7 +229,8 @@ public final class MecanumDrive {
         rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // TODO: reverse motor directions if needed
-        //   leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftBack.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // TODO: make sure your config has an IMU with this name (can be BNO or BHI)
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
@@ -288,19 +290,39 @@ public final class MecanumDrive {
                 t = Actions.now() - beginTs;
             }
 
-            if (t >= timeTrajectory.duration) {
+
+            // Perform some variable fetches early to allow error calculation to
+            //   factor into trajectory stop conditional (rr.brott.dev/docs/v1-0/guides/extra-correction/)
+            Pose2dDual<Time> txWorldTarget = timeTrajectory.get(t);
+            targetPoseWriter.write(new PoseMessage(txWorldTarget.value()));
+
+            PoseVelocity2d robotVelRobot = updatePoseEstimate();
+
+            Pose2d error = txWorldTarget.value().minusExp(pose);
+
+
+            p.put("In TrajectoryActionBuilder", "");
+
+
+            // Extra logic added to make sure the trajectory does not end until the robot
+            //   has deccently low error regarding its target ending pose and velocity
+            if ((t >= timeTrajectory.duration && Math.abs(error.position.norm()) < 1   // Must be within 1 in of target pose
+                                            //&& Math.abs(robotVelRobot.linearVel.norm()) < 0.5
+                                            && Math.abs(Math.toDegrees(error.heading.toDouble())) < 3   // Must be within 1 degree of target heading
+                                            && Math.abs(robotVelRobot.angVel) < 0.5)
+                                            || t >= timeTrajectory.duration + 5) {
                 leftFront.setPower(0);
                 leftBack.setPower(0);
                 rightBack.setPower(0);
                 rightFront.setPower(0);
 
+                p.put("FinalTimeDifference Traj", t - timeTrajectory.duration);
+
+                p.put("FinalTraj heading (deg)", Math.toDegrees(pose.heading.toDouble()));
+                p.put("FinalTraj headingError (deg)", Math.toDegrees(error.heading.toDouble()));
+
                 return false;
             }
-
-            Pose2dDual<Time> txWorldTarget = timeTrajectory.get(t);
-            targetPoseWriter.write(new PoseMessage(txWorldTarget.value()));
-
-            PoseVelocity2d robotVelRobot = updatePoseEstimate();
 
             PoseVelocity2dDual<Time> command = new HolonomicController(
                     PARAMS.axialGain, PARAMS.lateralGain, PARAMS.headingGain,
@@ -331,7 +353,6 @@ public final class MecanumDrive {
             p.put("y", pose.position.y);
             p.put("heading (deg)", Math.toDegrees(pose.heading.toDouble()));
 
-            Pose2d error = txWorldTarget.value().minusExp(pose);
             p.put("xError", error.position.x);
             p.put("yError", error.position.y);
             p.put("headingError (deg)", Math.toDegrees(error.heading.toDouble()));
@@ -380,19 +401,33 @@ public final class MecanumDrive {
                 t = Actions.now() - beginTs;
             }
 
-            if (t >= turn.duration) {
-                leftFront.setPower(0);
-                leftBack.setPower(0);
-                rightBack.setPower(0);
-                rightFront.setPower(0);
-
-                return false;
-            }
 
             Pose2dDual<Time> txWorldTarget = turn.get(t);
             targetPoseWriter.write(new PoseMessage(txWorldTarget.value()));
 
             PoseVelocity2d robotVelRobot = updatePoseEstimate();
+
+            Pose2d error = txWorldTarget.value().minusExp(pose);
+
+
+            p.put("In TurnAction", "");
+
+
+            if ((t >= turn.duration && Math.abs(Math.toDegrees(error.heading.toDouble())) < 0.5   // Must be within 1 degree of target heading
+                                    && Math.abs(robotVelRobot.angVel) < 0.5)
+                                    || t >= turn.duration + 5) {
+                leftFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+                rightFront.setPower(0);
+
+                p.put("FinalTimeDifference Turn", t - turn.duration);
+
+                p.put("FinalTurn heading (deg)", Math.toDegrees(pose.heading.toDouble()));
+                p.put("FinalTurn headingError (deg)", Math.toDegrees(error.heading.toDouble()));
+
+                return false;
+            }
 
             PoseVelocity2dDual<Time> command = new HolonomicController(
                     PARAMS.axialGain, PARAMS.lateralGain, PARAMS.headingGain,
