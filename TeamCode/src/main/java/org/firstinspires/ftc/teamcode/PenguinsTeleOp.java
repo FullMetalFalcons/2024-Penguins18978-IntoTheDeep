@@ -19,6 +19,7 @@ public class PenguinsTeleOp extends LinearOpMode {
     //Initialize motors, servos, sensors, imus, etc.
     DcMotorEx m1, m2, m3, m4, Arm, Slide, Hanger;
     Servo Claw;
+    public static MecanumDrive.Params DRIVE_PARAMS = new MecanumDrive.Params();
     public static PinpointDrive.Params PINPOINT_PARAMS = new PinpointDrive.Params();
 
     // Declare OpMode member for the Odometry Computer
@@ -28,10 +29,10 @@ public class PenguinsTeleOp extends LinearOpMode {
 
         //Define those motors and stuff
         //The string should be the name on the Driver Hub
-        m1 = (DcMotorEx) hardwareMap.dcMotor.get("leftFront");
-        m2 = (DcMotorEx) hardwareMap.dcMotor.get("rightFront");
-        m3 = (DcMotorEx) hardwareMap.dcMotor.get("leftBack");
-        m4 = (DcMotorEx) hardwareMap.dcMotor.get("rightBack");
+        m1 = (DcMotorEx) hardwareMap.dcMotor.get(DRIVE_PARAMS.leftFrontDriveName);
+        m2 = (DcMotorEx) hardwareMap.dcMotor.get(DRIVE_PARAMS.rightFrontDriveName);
+        m3 = (DcMotorEx) hardwareMap.dcMotor.get(DRIVE_PARAMS.leftBackDriveName);
+        m4 = (DcMotorEx) hardwareMap.dcMotor.get(DRIVE_PARAMS.rightBackDriveName);
         Arm = (DcMotorEx) hardwareMap.dcMotor.get("arm");
         Slide = (DcMotorEx) hardwareMap.dcMotor.get("slide");
         Hanger = (DcMotorEx) hardwareMap.dcMotor.get("linearActuator");
@@ -40,8 +41,10 @@ public class PenguinsTeleOp extends LinearOpMode {
 
         //Set them to the correct modes
         //This reverses the motor direction
-        m1.setDirection(DcMotorSimple.Direction.REVERSE);
-        m3.setDirection(DcMotorSimple.Direction.REVERSE);
+        m1.setDirection(DRIVE_PARAMS.leftFrontDriveDirection);
+        m2.setDirection(DRIVE_PARAMS.rightFrontDriveDirection);
+        m3.setDirection(DRIVE_PARAMS.leftBackDriveDirection);
+        m4.setDirection(DRIVE_PARAMS.rightBackDriveDirection);
 
         Arm.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -52,6 +55,8 @@ public class PenguinsTeleOp extends LinearOpMode {
         m4.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
 
         Hanger.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        Slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        Arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         //This makes the wheels tense up and stay in position when it is not moving, opposite is FLOAT
         m1.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
@@ -165,10 +170,10 @@ public class PenguinsTeleOp extends LinearOpMode {
             // Claw Code
             if (gamepad1.y) {
                 // Open Position
-                Claw.setPosition(0.6);
+                Claw.setPosition(0.3);
             } else {
                 // Closed Position
-                Claw.setPosition(0.3);
+                Claw.setPosition(0.6);
             }
 
 
@@ -201,9 +206,14 @@ public class PenguinsTeleOp extends LinearOpMode {
             */
             telemetry.addData("Status", odo.getDeviceStatus());
 
+            if (gamepad1.a) {
+                // Encoder telemetry
+                telemetry.addData("Arm Pos", Arm.getCurrentPosition());
+                telemetry.addData("Slide Pos", Slide.getCurrentPosition());
+            }
+
             telemetry.update();
 
         } // opModeActive loop ends
     }
 } // end class
-
