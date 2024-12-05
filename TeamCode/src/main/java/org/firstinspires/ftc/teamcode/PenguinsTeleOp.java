@@ -120,7 +120,6 @@ public class PenguinsTeleOp extends LinearOpMode {
                 py = -gamepad1.left_stick_y;
                 pa = -gamepad1.right_stick_x;
             }
-
             double p1 = px + py - pa;
             double p2 = -px + py + pa;
             double p3 = -px + py - pa;
@@ -141,27 +140,40 @@ public class PenguinsTeleOp extends LinearOpMode {
 
             // Arm Code
             if (gamepad1.right_bumper) {
-                // Arm Up
-                Arm.setPower(1);
+                // Arm Up, if the limit will not be passed
+                if (getNewRobotLength(0,5)) {
+                    Arm.setPower(1);
+                }
             } else if (gamepad1.right_trigger > 0) {
-                // Arm Down
-                Arm.setPower(-1);
+                // Arm Down, if the limit will not be passed
+                if (getNewRobotLength(0,-5)) {
+                    Arm.setPower(-1);
+                }
             } else {
                 // At Rest
                 Arm.setPower(0);
             }
 
+
+
             // Slide Code
             if (gamepad1.left_bumper) {
-                // Slide Out
-                Slide.setPower(1);
+                // Slide Out, if the limit will not be passed
+                if (getNewRobotLength(5,0)) {
+                    Slide.setPower(1);
+                }
             } else if (gamepad1.left_trigger > 0) {
                 // Slide In
-                Slide.setPower(-1);
+                // I don't think a limit check is ever necessary here, but just in case...
+                if (getNewRobotLength(-5,0)) {
+                    Slide.setPower(-1);
+                }
             } else {
                 // At Rest
                 Slide.setPower(0);
             }
+
+
 
             // Hanging Arm Code
             if (gamepad2.left_bumper) {
@@ -232,7 +244,7 @@ public class PenguinsTeleOp extends LinearOpMode {
     }
 
     // Method to check whether the robot will still be within size constraints after the desired movements
-    public boolean getNewRobotWidth(int deltaLength, int deltaAngle) {
+    public boolean getNewRobotLength(int deltaLength, int deltaAngle) {
         slideLength = (int) (Slide.getCurrentPosition() * inPerSlideTick);
         slideLength += deltaLength;
 
