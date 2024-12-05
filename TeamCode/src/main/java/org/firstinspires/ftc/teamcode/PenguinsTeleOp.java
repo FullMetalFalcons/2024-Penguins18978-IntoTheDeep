@@ -22,6 +22,18 @@ public class PenguinsTeleOp extends LinearOpMode {
     public static MecanumDrive.Params DRIVE_PARAMS = new MecanumDrive.Params();
     public static PinpointDrive.Params PINPOINT_PARAMS = new PinpointDrive.Params();
 
+
+    // Encoder storage variables
+    int slideLength = 0;
+    final double inPerSlideTick = 0.0;
+
+    int armAngle = 0;
+    final double degreePerArmTick = 0.0;
+
+    int currentRobotLength = 0;
+    final int MAX_ROBOT_LENGTH = 42;
+
+
     // Declare OpMode member for the Odometry Computer
     GoBildaPinpointDriverRR odo;
 
@@ -46,7 +58,9 @@ public class PenguinsTeleOp extends LinearOpMode {
         m3.setDirection(DRIVE_PARAMS.leftBackDriveDirection);
         m4.setDirection(DRIVE_PARAMS.rightBackDriveDirection);
 
-        Arm.setDirection(DcMotorSimple.Direction.REVERSE);
+        Slide.setDirection(DcMotorSimple.Direction.REVERSE);
+        Hanger.setDirection(DcMotorSimple.Direction.REVERSE);
+
 
         //This resets the encoder values when the code is initialized
         m1.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
@@ -76,7 +90,7 @@ public class PenguinsTeleOp extends LinearOpMode {
         m4.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         Hanger.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
+        Arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
         // Pinpoint computer setup
@@ -128,10 +142,10 @@ public class PenguinsTeleOp extends LinearOpMode {
             // Arm Code
             if (gamepad1.right_bumper) {
                 // Arm Up
-                Arm.setPower(-1);
+                Arm.setPower(1);
             } else if (gamepad1.right_trigger > 0) {
                 // Arm Down
-                Arm.setPower(1);
+                Arm.setPower(-1);
             } else {
                 // At Rest
                 Arm.setPower(0);
@@ -139,11 +153,11 @@ public class PenguinsTeleOp extends LinearOpMode {
 
             // Slide Code
             if (gamepad1.left_bumper) {
-                // Arm Up
-                Slide.setPower(-1);
-            } else if (gamepad1.left_trigger > 0) {
-                // Arm Down
+                // Slide Out
                 Slide.setPower(1);
+            } else if (gamepad1.left_trigger > 0) {
+                // Slide In
+                Slide.setPower(-1);
             } else {
                 // At Rest
                 Slide.setPower(0);
@@ -152,7 +166,7 @@ public class PenguinsTeleOp extends LinearOpMode {
             // Hanging Arm Code
             if (gamepad2.left_bumper) {
                 // Actuator Out
-                Hanger.setPower(-1);
+                Hanger.setPower(1);
             } else {
                 /* Add:
                    Hanger.getCurrentPosition() < -500 ||
@@ -160,7 +174,7 @@ public class PenguinsTeleOp extends LinearOpMode {
                  */
                 if (gamepad2.left_trigger > 0) {
                     // Retract if out
-                    Hanger.setPower(1);
+                    Hanger.setPower(-1);
                 } else {
                     // Stop if fully back
                     Hanger.setPower(0);
@@ -216,4 +230,18 @@ public class PenguinsTeleOp extends LinearOpMode {
 
         } // opModeActive loop ends
     }
+
+    // Method to check whether the robot will still be within size constraints after the desired movements
+    public boolean getNewRobotWidth(int deltaLength, int deltaAngle) {
+        slideLength = (int) (Slide.getCurrentPosition() * inPerSlideTick);
+        slideLength += deltaLength;
+
+        armAngle = (int) (Arm.getCurrentPosition() * degreePerArmTick);
+        armAngle += deltaAngle;
+
+        currentRobotLength = (int) (Math.cos(armAngle) * slideLength);
+        return currentRobotLength < MAX_ROBOT_LENGTH;
+    }
+
+
 } // end class
