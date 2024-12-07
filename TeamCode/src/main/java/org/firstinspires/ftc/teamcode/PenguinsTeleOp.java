@@ -23,12 +23,19 @@ public class PenguinsTeleOp extends LinearOpMode {
     public static PinpointDrive.Params PINPOINT_PARAMS = new PinpointDrive.Params();
 
 
-    // Encoder storage variables
+    // Encoder storage variables for arm limits
     double slideLengthInches = 0;
-    final double inchesPerSlideTick = 0.00830154812;
+    double INITIAL_SLIDE_LENGTH_INCHES = 18.0;
+    final double INCHES_PER_SLIDE_TICK = 0.00830154812;
 
     double armAngleDeg = 0;
-    final double degreePerArmTick = 0.018326206475;
+    final double INITIAL_ARM_ENCODER = 600;
+    final double DEGREES_PER_ARM_TICK = 0.018326206475;
+
+    // The amount that the claw adds onto the robot's length
+    double clawLengthAdditionalInches = 0.0;
+    // The physical length of the claw itself
+    final double CLAW_LENGTH_INCHES = 0.0;
 
     double currentRobotLengthInches = 0.0;
     final double MAX_ROBOT_LENGTH_INCHES = 42.0;
@@ -243,13 +250,16 @@ public class PenguinsTeleOp extends LinearOpMode {
 
     // Method to check whether the robot will still be within size constraints after the desired movements
     public boolean getNewRobotLength(double deltaLengthInInches, double deltaAngleDeg) {
-        slideLengthInches = 18.0 + (Slide.getCurrentPosition() * inchesPerSlideTick);
+        slideLengthInches = INITIAL_SLIDE_LENGTH_INCHES + (Slide.getCurrentPosition() * INCHES_PER_SLIDE_TICK);
         slideLengthInches += deltaLengthInInches;
 
-        armAngleDeg = (Arm.getCurrentPosition() + 600.0) * degreePerArmTick;
+        armAngleDeg = (Arm.getCurrentPosition() + INITIAL_ARM_ENCODER) * DEGREES_PER_ARM_TICK;
         armAngleDeg += deltaAngleDeg;
 
         currentRobotLengthInches = Math.cos(Math.toRadians(armAngleDeg)) * slideLengthInches;
+        clawLengthAdditionalInches = Math.sin(Math.toRadians(armAngleDeg)) * CLAW_LENGTH_INCHES;
+        currentRobotLengthInches += clawLengthAdditionalInches;
+
         if (armAngleDeg > 85) {
             // Don't let the arm go past straight up
             return false;
