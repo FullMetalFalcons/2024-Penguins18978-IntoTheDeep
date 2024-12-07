@@ -24,14 +24,14 @@ public class PenguinsTeleOp extends LinearOpMode {
 
 
     // Encoder storage variables
-    int slideLength = 0;
-    final double inPerSlideTick = 0.0;
+    double slideLength = 0;
+    final double inPerSlideTick = 0.00830154812;
 
-    int armAngle = 0;
-    final double degreePerArmTick = 0.0;
+    double armAngle = 0;
+    final double degreePerArmTick = 0.018326206475;
 
-    int currentRobotLength = 0;
-    final int MAX_ROBOT_LENGTH = 42;
+    double currentRobotLength = 0.0;
+    final double MAX_ROBOT_LENGTH = 42.0;
 
 
     // Declare OpMode member for the Odometry Computer
@@ -90,6 +90,7 @@ public class PenguinsTeleOp extends LinearOpMode {
         m4.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         Hanger.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        Slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         Arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
@@ -139,16 +140,12 @@ public class PenguinsTeleOp extends LinearOpMode {
 
 
             // Arm Code
-            if (gamepad1.right_bumper) {
+            if (gamepad1.right_bumper && getNewRobotLength(0.0,2.0)) {
                 // Arm Up, if the limit will not be passed
-                if (getNewRobotLength(0,5)) {
-                    Arm.setPower(1);
-                }
-            } else if (gamepad1.right_trigger > 0) {
+                Arm.setPower(1);
+            } else if (gamepad1.right_trigger > 0 && getNewRobotLength(0.0,-2.0)) {
                 // Arm Down, if the limit will not be passed
-                if (getNewRobotLength(0,-5)) {
-                    Arm.setPower(-1);
-                }
+                Arm.setPower(-1);
             } else {
                 // At Rest
                 Arm.setPower(0);
@@ -157,17 +154,13 @@ public class PenguinsTeleOp extends LinearOpMode {
 
 
             // Slide Code
-            if (gamepad1.left_bumper) {
+            if (gamepad1.left_bumper && getNewRobotLength(5.0,0.0)) {
                 // Slide Out, if the limit will not be passed
-                if (getNewRobotLength(5,0)) {
-                    Slide.setPower(1);
-                }
-            } else if (gamepad1.left_trigger > 0) {
+                Slide.setPower(1);
+            } else if (gamepad1.left_trigger > 0 && getNewRobotLength(-5.0,0.0)) {
                 // Slide In
                 // I don't think a limit check is ever necessary here, but just in case...
-                if (getNewRobotLength(-5,0)) {
-                    Slide.setPower(-1);
-                }
+                Slide.setPower(-1);
             } else {
                 // At Rest
                 Slide.setPower(0);
@@ -236,6 +229,11 @@ public class PenguinsTeleOp extends LinearOpMode {
                 // Encoder telemetry
                 telemetry.addData("Arm Pos", Arm.getCurrentPosition());
                 telemetry.addData("Slide Pos", Slide.getCurrentPosition());
+
+                getNewRobotLength(0,0);
+                telemetry.addData("Arm Angle", armAngle);
+                telemetry.addData("Slide Length", slideLength);
+                telemetry.addData("Robot Length", currentRobotLength);
             }
 
             telemetry.update();
@@ -244,16 +242,15 @@ public class PenguinsTeleOp extends LinearOpMode {
     }
 
     // Method to check whether the robot will still be within size constraints after the desired movements
-    public boolean getNewRobotLength(int deltaLength, int deltaAngle) {
-        slideLength = (int) (Slide.getCurrentPosition() * inPerSlideTick);
+    public boolean getNewRobotLength(double deltaLength, double deltaAngle) {
+        slideLength = 18.0 + (Slide.getCurrentPosition() * inPerSlideTick);
         slideLength += deltaLength;
 
-        armAngle = (int) (Arm.getCurrentPosition() * degreePerArmTick);
+        armAngle = (Arm.getCurrentPosition() + 600.0) * degreePerArmTick;
         armAngle += deltaAngle;
 
-        currentRobotLength = (int) (Math.cos(armAngle) * slideLength);
-        return currentRobotLength < MAX_ROBOT_LENGTH;
+        currentRobotLength = Math.cos(Math.toRadians(armAngle)) * slideLength;
+        return (currentRobotLength < MAX_ROBOT_LENGTH);
     }
-
 
 } // end class
