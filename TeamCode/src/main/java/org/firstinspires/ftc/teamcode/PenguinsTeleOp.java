@@ -250,7 +250,13 @@ public class PenguinsTeleOp extends LinearOpMode {
         armAngleDeg += deltaAngleDeg;
 
         currentRobotLengthInches = Math.cos(Math.toRadians(armAngleDeg)) * slideLengthInches;
-        return (currentRobotLengthInches < MAX_ROBOT_LENGTH_INCHES);
+        if (armAngleDeg > 85) {
+            // Don't let the arm go past straight up
+            return false;
+        } else {
+            // Determine if the robot is within its size limit
+            return (currentRobotLengthInches < MAX_ROBOT_LENGTH_INCHES);
+        }
     }
 
 } // end class
