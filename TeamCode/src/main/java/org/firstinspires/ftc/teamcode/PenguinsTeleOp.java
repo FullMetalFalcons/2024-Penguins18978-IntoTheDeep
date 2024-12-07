@@ -24,14 +24,14 @@ public class PenguinsTeleOp extends LinearOpMode {
 
 
     // Encoder storage variables
-    double slideLength = 0;
-    final double inPerSlideTick = 0.00830154812;
+    double slideLengthInches = 0;
+    final double inchesPerSlideTick = 0.00830154812;
 
-    double armAngle = 0;
+    double armAngleDeg = 0;
     final double degreePerArmTick = 0.018326206475;
 
-    double currentRobotLength = 0.0;
-    final double MAX_ROBOT_LENGTH = 42.0;
+    double currentRobotLengthInches = 0.0;
+    final double MAX_ROBOT_LENGTH_INCHES = 42.0;
 
 
     // Declare OpMode member for the Odometry Computer
@@ -231,9 +231,9 @@ public class PenguinsTeleOp extends LinearOpMode {
                 telemetry.addData("Slide Pos", Slide.getCurrentPosition());
 
                 getNewRobotLength(0,0);
-                telemetry.addData("Arm Angle", armAngle);
-                telemetry.addData("Slide Length", slideLength);
-                telemetry.addData("Robot Length", currentRobotLength);
+                telemetry.addData("Arm Angle", armAngleDeg);
+                telemetry.addData("Slide Length", slideLengthInches);
+                telemetry.addData("Robot Length", currentRobotLengthInches);
             }
 
             telemetry.update();
@@ -242,15 +242,15 @@ public class PenguinsTeleOp extends LinearOpMode {
     }
 
     // Method to check whether the robot will still be within size constraints after the desired movements
-    public boolean getNewRobotLength(double deltaLength, double deltaAngle) {
-        slideLength = 18.0 + (Slide.getCurrentPosition() * inPerSlideTick);
-        slideLength += deltaLength;
+    public boolean getNewRobotLength(double deltaLengthInInches, double deltaAngleDeg) {
+        slideLengthInches = 18.0 + (Slide.getCurrentPosition() * inchesPerSlideTick);
+        slideLengthInches += deltaLengthInInches;
 
-        armAngle = (Arm.getCurrentPosition() + 600.0) * degreePerArmTick;
-        armAngle += deltaAngle;
+        armAngleDeg = (Arm.getCurrentPosition() + 600.0) * degreePerArmTick;
+        armAngleDeg += deltaAngleDeg;
 
-        currentRobotLength = Math.cos(Math.toRadians(armAngle)) * slideLength;
-        return (currentRobotLength < MAX_ROBOT_LENGTH);
+        currentRobotLengthInches = Math.cos(Math.toRadians(armAngleDeg)) * slideLengthInches;
+        return (currentRobotLengthInches < MAX_ROBOT_LENGTH_INCHES);
     }
 
 } // end class
