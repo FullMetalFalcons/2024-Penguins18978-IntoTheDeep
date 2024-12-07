@@ -35,7 +35,7 @@ public class PenguinsTeleOp extends LinearOpMode {
     // The amount that the claw adds onto the robot's length
     double clawLengthAdditionalInches = 0.0;
     // The physical length of the claw itself
-    final double CLAW_LENGTH_INCHES = 0.0;
+    final double CLAW_LENGTH_INCHES = 11.0;
 
     double currentRobotLengthInches = 0.0;
     final double MAX_ROBOT_LENGTH_INCHES = 42.0;
