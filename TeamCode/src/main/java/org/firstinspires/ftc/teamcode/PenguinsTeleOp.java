@@ -25,20 +25,33 @@ public class PenguinsTeleOp extends LinearOpMode {
 
     // Encoder storage variables for arm limits
     double slideLengthInches = 0;
-    double INITIAL_SLIDE_LENGTH_INCHES = 18.0;
+    double INITIAL_SLIDE_LENGTH_INCHES = 16.0;
     final double INCHES_PER_SLIDE_TICK = 0.00830154812;
 
     double armAngleDeg = 0;
     final double INITIAL_ARM_ENCODER = 600;
     final double DEGREES_PER_ARM_TICK = 0.018326206475;
+    final double MAX_ARM_ANGLE_DEGREES = 90.0;
 
     // The amount that the claw adds onto the robot's length
     double clawLengthAdditionalInches = 0.0;
-    // The physical length of the claw itself
-    final double CLAW_LENGTH_INCHES = 11.0;
+    // The physical length of the claw itself (from the bottom of the viper slide)
+    final double CLAW_LENGTH_INCHES = 9.0;
 
     double currentRobotLengthInches = 0.0;
+    final double INITIAL_ROBOT_LENGTH_INCHES = 18.0;
+
+    // The amount of added length due to the offset viper slide
+    double parallelSlideOffsetInches = 0.0;
+    // The distance between the center of the linear actuator and the bottom of the viper slide
+    final double PARALLEL_SLIDE_DIFFERENCE_INCHES = 3.0;
+
+
     final double MAX_ROBOT_LENGTH_INCHES = 42.0;
+
+    // Constants for how much anticipatory length/angle should be added when attempting to move a motor
+    final double ABSOLUTE_DELTA_LENGTH_INCHES = 3.0;
+    final double ABSOLUTE_DELTA_ANGLE_DEGREES = 7.0;
 
 
     // Declare OpMode member for the Odometry Computer
@@ -147,10 +160,10 @@ public class PenguinsTeleOp extends LinearOpMode {
 
 
             // Arm Code
-            if (gamepad1.right_bumper && getNewRobotLength(0.0,2.0)) {
+            if (gamepad1.right_bumper && getNewRobotLength(0.0,ABSOLUTE_DELTA_ANGLE_DEGREES)) {
                 // Arm Up, if the limit will not be passed
                 Arm.setPower(1);
-            } else if (gamepad1.right_trigger > 0 && getNewRobotLength(0.0,-2.0)) {
+            } else if (gamepad1.right_trigger > 0 && getNewRobotLength(0.0,-ABSOLUTE_DELTA_ANGLE_DEGREES)) {
                 // Arm Down, if the limit will not be passed
                 Arm.setPower(-1);
             } else {
@@ -161,10 +174,10 @@ public class PenguinsTeleOp extends LinearOpMode {
 
 
             // Slide Code
-            if (gamepad1.left_bumper && getNewRobotLength(5.0,0.0)) {
+            if (gamepad1.left_bumper && getNewRobotLength(ABSOLUTE_DELTA_LENGTH_INCHES,0.0)) {
                 // Slide Out, if the limit will not be passed
                 Slide.setPower(1);
-            } else if (gamepad1.left_trigger > 0 && getNewRobotLength(-5.0,0.0)) {
+            } else if (gamepad1.left_trigger > 0 && getNewRobotLength(-ABSOLUTE_DELTA_LENGTH_INCHES,0.0)) {
                 // Slide In
                 // I don't think a limit check is ever necessary here, but just in case...
                 Slide.setPower(-1);
@@ -200,6 +213,20 @@ public class PenguinsTeleOp extends LinearOpMode {
             } else {
                 // Closed Position
                 Claw.setPosition(0.6);
+            }
+
+
+
+            // EMERGENCY encoder reset sequence
+            if ((gamepad1.start && gamepad1.back) || (gamepad2.start && gamepad2.back)) {
+                // In case of "emergency," reset all encoders
+                Slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                Arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+                Slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                Arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+                telemetry.addLine("Reset encoders");
             }
 
 
@@ -240,6 +267,7 @@ public class PenguinsTeleOp extends LinearOpMode {
                 getNewRobotLength(0,0);
                 telemetry.addData("Arm Angle", armAngleDeg);
                 telemetry.addData("Slide Length", slideLengthInches);
+                telemetry.addData("Claw Length", clawLengthAdditionalInches);
                 telemetry.addData("Robot Length", currentRobotLengthInches);
             }
 
@@ -256,12 +284,17 @@ public class PenguinsTeleOp extends LinearOpMode {
         armAngleDeg = (Arm.getCurrentPosition() + INITIAL_ARM_ENCODER) * DEGREES_PER_ARM_TICK;
         armAngleDeg += deltaAngleDeg;
 
-        currentRobotLengthInches = Math.cos(Math.toRadians(armAngleDeg)) * slideLengthInches;
+        parallelSlideOffsetInches = Math.cos(Math.toRadians(90 - armAngleDeg)) * PARALLEL_SLIDE_DIFFERENCE_INCHES;
+
+        currentRobotLengthInches = parallelSlideOffsetInches
+                + (INITIAL_ROBOT_LENGTH_INCHES - INITIAL_SLIDE_LENGTH_INCHES)
+                + (Math.cos(Math.toRadians(armAngleDeg)) * slideLengthInches);
         clawLengthAdditionalInches = Math.sin(Math.toRadians(armAngleDeg)) * CLAW_LENGTH_INCHES;
         currentRobotLengthInches += clawLengthAdditionalInches;
 
-        if (armAngleDeg > 85) {
-            // Don't let the arm go past straight up
+        if (armAngleDeg > MAX_ARM_ANGLE_DEGREES) {
+            // Don't let the arm go too far such
+            //   that the motor hangs out the back
             return false;
         } else {
             // Determine if the robot is within its size limit
