@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
@@ -15,12 +17,25 @@ import com.acmerobotics.roadrunner.ftc.GoBildaPinpointDriverRR;
 import java.util.Locale;
 
 @TeleOp
+@Config
 public class PenguinsTeleOp extends LinearOpMode {
     //Initialize motors, servos, sensors, imus, etc.
     DcMotorEx m1, m2, m3, m4, Arm, Slide, Hanger;
     Servo Claw;
     public static MecanumDrive.Params DRIVE_PARAMS = new MecanumDrive.Params();
     public static PinpointDrive.Params PINPOINT_PARAMS = new PinpointDrive.Params();
+
+    public static double arm_p = 5;
+    public static double arm_i = 0.05;
+    public static double arm_d = 0;
+
+    public static double slide_p = 5;
+    public static double slide_i = 0.05;
+    public static double slide_d = 0;
+
+    // Built-in PID loops for RUN_TO_POSITION
+    public PIDFCoefficients armPID = new PIDFCoefficients(arm_p, arm_i, arm_d, 0);
+    public PIDFCoefficients slidePID = new PIDFCoefficients(slide_p, slide_i, slide_d, 0);
 
 
     // Encoder storage variables for arm limits
@@ -45,7 +60,6 @@ public class PenguinsTeleOp extends LinearOpMode {
     double parallelSlideOffsetInches = 0.0;
     // The distance between the center of the linear actuator and the bottom of the viper slide
     final double PARALLEL_SLIDE_DIFFERENCE_INCHES = 3.0;
-
 
     final double MAX_ROBOT_LENGTH_INCHES = 42.0;
 
@@ -159,6 +173,86 @@ public class PenguinsTeleOp extends LinearOpMode {
             m4.setPower(p4);
 
 
+
+            if (gamepad2.dpad_down) {
+                Arm.setTargetPosition(0);
+                Slide.setTargetPosition(0);
+
+                Arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                while (Arm.isBusy() || Slide.isBusy()) {
+                    Arm.setPower(-1);
+                    Slide.setPower(-1);
+
+                    getNewRobotLength(0,0);
+                    telemetry.addData("Arm Busy", Arm.isBusy());
+                    telemetry.addData("Arm Angle", armAngleDeg);
+                    telemetry.addData("Slide Busy", Slide.isBusy());
+                    telemetry.addData("Slide Length", slideLengthInches);
+                    telemetry.update();
+                }
+                Arm.setPower(0);
+                Slide.setPower(0);
+
+                Arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                Slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            } else if (gamepad2.dpad_up) {
+
+                Arm.setTargetPosition((int) (45/DEGREES_PER_ARM_TICK - INITIAL_ARM_ENCODER));
+                Slide.setTargetPosition((int) (20/INCHES_PER_SLIDE_TICK));
+
+                armPID = Arm.getPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION);
+                slidePID = Slide.getPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION);
+                armPID.p = arm_p;
+                armPID.i = arm_i;
+                armPID.d = arm_d;
+
+                slidePID.p = slide_p;
+                slidePID.i = slide_i;
+                slidePID.d = slide_d;
+                Arm.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, armPID);
+                Slide.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, slidePID);
+
+                Arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                while (Arm.isBusy() || Slide.isBusy()) {
+                    /*
+                    double armP = (double) (Arm.getTargetPosition() - Arm.getCurrentPosition()) / Math.abs(Arm.getTargetPosition());
+                    double slideP = (double) (Slide.getTargetPosition() - Slide.getCurrentPosition()) / Math.abs(Slide.getTargetPosition());
+                    if (Math.abs(armP) > 0.3) {
+                        Arm.setPower(armP);
+                    } else {
+                        Arm.setPower( (armP)/(Math.abs(armP)) * 0.3);
+                    }
+                    if (Math.abs(slideP) > 0.3) {
+                        Slide.setPower(slideP);
+                    } else {
+                        Slide.setPower((slideP) / (Math.abs(slideP)) * 0.3);
+                    }
+                    */
+                    Arm.setPower(1);
+                    Slide.setPower(1);
+
+                    getNewRobotLength(0,0);
+                    telemetry.addData("Arm Busy", Arm.isBusy());
+                    telemetry.addData("Arm Angle", armAngleDeg);
+                    telemetry.addData("Slide Busy", Slide.isBusy());
+                    telemetry.addData("Slide Length", slideLengthInches);
+                    telemetry.update();
+                }
+                Arm.setPower(0);
+                Slide.setPower(0);
+
+                Arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                Slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            }
+
+
+
+
+
+
             // Arm Code
             if (gamepad1.right_bumper && getNewRobotLength(0.0,ABSOLUTE_DELTA_ANGLE_DEGREES)) {
                 // Arm Up, if the limit will not be passed
@@ -259,7 +353,7 @@ public class PenguinsTeleOp extends LinearOpMode {
             */
             telemetry.addData("Status", odo.getDeviceStatus());
 
-            if (gamepad1.a) {
+            if (gamepad1.a || gamepad2.a) {
                 // Encoder telemetry
                 telemetry.addData("Arm Pos", Arm.getCurrentPosition());
                 telemetry.addData("Slide Pos", Slide.getCurrentPosition());
@@ -269,6 +363,12 @@ public class PenguinsTeleOp extends LinearOpMode {
                 telemetry.addData("Slide Length", slideLengthInches);
                 telemetry.addData("Claw Length", clawLengthAdditionalInches);
                 telemetry.addData("Robot Length", currentRobotLengthInches);
+
+                armPID = Arm.getPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION);
+                telemetry.addData("P", armPID.p);
+                telemetry.addData("I", armPID.i);
+                telemetry.addData("D", armPID.d);
+                telemetry.addData("F", armPID.f);
             }
 
             telemetry.update();
