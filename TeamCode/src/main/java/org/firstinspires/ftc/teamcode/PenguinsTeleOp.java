@@ -145,15 +145,21 @@ public class PenguinsTeleOp extends LinearOpMode {
             if (gamepad1.dpad_down || gamepad1.dpad_up || gamepad1.dpad_left || gamepad1.dpad_right) {
                 // This allows for driving via dpad as well
                 // Uses ternaries to make the code more compact (condition ? if true : if false)
-                px = gamepad1.dpad_left ? -0.8 : 0.0;
-                px = gamepad1.dpad_right ? 0.8 : px;
-                py = gamepad1.dpad_down ? -0.8 : 0.0;
-                py = gamepad1.dpad_up ? 0.8 : py;
+                px = gamepad1.dpad_left ? -0.2 : 0.0;
+                px = gamepad1.dpad_right ? 0.2 : px;
+                py = gamepad1.dpad_down ? -0.2 : 0.0;
+                py = gamepad1.dpad_up ? 0.2 : py;
             } else {
                 // If the dpad is not in use, drive via sticks
                 px = gamepad1.left_stick_x;
                 py = -gamepad1.left_stick_y;
                 pa = -gamepad1.right_stick_x;
+            }
+            if (gamepad2.right_trigger > 0.0 || gamepad2.left_trigger > 0.0) {
+                // Slow mode for turning
+                // Currently uses GAMEPAD2 but probably will change in the future
+                pa = gamepad2.right_trigger > 0.0 ? 0.5*gamepad2.right_trigger : 0.0;
+                pa = gamepad2.left_trigger > 0.0 ? -0.5*gamepad2.left_trigger : pa;
             }
             double p1 = px + py - pa;
             double p2 = -px + py + pa;
@@ -260,9 +266,12 @@ public class PenguinsTeleOp extends LinearOpMode {
             } else if (gamepad1.right_trigger > 0 && getNewRobotLength(0.0,-ABSOLUTE_DELTA_ANGLE_DEGREES)) {
                 // Arm Down, if the limit will not be passed
                 Arm.setPower(-1);
+            } else if (getNewRobotLength(0.0, ABSOLUTE_DELTA_ANGLE_DEGREES * gamepad2.left_stick_y)) {
+                // Go by gamepad2 joystick
+                Arm.setPower(gamepad2.left_stick_y);
             } else {
                 // At Rest
-                Arm.setPower(0);
+                Arm.setPower(0.0);
             }
 
 
@@ -275,6 +284,9 @@ public class PenguinsTeleOp extends LinearOpMode {
                 // Slide In
                 // I don't think a limit check is ever necessary here, but just in case...
                 Slide.setPower(-1);
+            } else if (getNewRobotLength(ABSOLUTE_DELTA_LENGTH_INCHES * gamepad2.right_stick_y, 0.0)) {
+                // Go by gamepad2 joystick
+                Slide.setPower(gamepad2.right_stick_y);
             } else {
                 // At Rest
                 Slide.setPower(0);
@@ -301,7 +313,7 @@ public class PenguinsTeleOp extends LinearOpMode {
             }
 
             // Claw Code
-            if (gamepad1.y) {
+            if (gamepad1.y || gamepad2.right_bumper || gamepad2.left_bumper) {
                 // Open Position
                 Claw.setPosition(0.3);
             } else {
