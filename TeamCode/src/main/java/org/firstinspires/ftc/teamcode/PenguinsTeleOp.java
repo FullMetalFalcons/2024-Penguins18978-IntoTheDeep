@@ -68,6 +68,10 @@ public class PenguinsTeleOp extends LinearOpMode {
     final double ABSOLUTE_DELTA_ANGLE_DEGREES = 7.0;
 
 
+    // Custom Controls variables
+    double virtualRightStickX = 0.0;
+
+
     // Declare OpMode member for the Odometry Computer
     GoBildaPinpointDriverRR odo;
 
@@ -139,6 +143,14 @@ public class PenguinsTeleOp extends LinearOpMode {
 
         while(opModeIsActive()) {
             // Mecanum drive code
+            //  This code allows the robot to turn via gamepad 1 or 2's joystick
+            if (Math.abs(gamepad1.right_stick_x) > 0.0) {
+                virtualRightStickX = gamepad1.right_stick_x;
+            } else if (Math.abs(gamepad2.right_stick_x) > 0.3) {
+                virtualRightStickX = gamepad2.right_stick_x;
+            } else {
+                virtualRightStickX = 0.0;
+            }
             double px = 0.0;
             double py = 0.0;
             double pa = 0.0;
@@ -153,13 +165,7 @@ public class PenguinsTeleOp extends LinearOpMode {
                 // If the dpad is not in use, drive via sticks
                 px = gamepad1.left_stick_x;
                 py = -gamepad1.left_stick_y;
-                pa = -gamepad1.right_stick_x;
-            }
-            if (gamepad2.right_trigger > 0.0 || gamepad2.left_trigger > 0.0) {
-                // Slow mode for turning
-                // Currently uses GAMEPAD2 but probably will change in the future
-                pa = gamepad2.right_trigger > 0.0 ? 0.5*gamepad2.right_trigger : 0.0;
-                pa = gamepad2.left_trigger > 0.0 ? -0.5*gamepad2.left_trigger : pa;
+                pa = -virtualRightStickX;
             }
             double p1 = px + py - pa;
             double p2 = -px + py + pa;
@@ -266,9 +272,9 @@ public class PenguinsTeleOp extends LinearOpMode {
             } else if (gamepad1.right_trigger > 0 && getNewRobotLength(0.0,-ABSOLUTE_DELTA_ANGLE_DEGREES)) {
                 // Arm Down, if the limit will not be passed
                 Arm.setPower(-1);
-            } else if (getNewRobotLength(0.0, ABSOLUTE_DELTA_ANGLE_DEGREES * gamepad2.left_stick_y)) {
+            } else if (getNewRobotLength(0.0, ABSOLUTE_DELTA_ANGLE_DEGREES * -gamepad2.left_stick_y)) {
                 // Go by gamepad2 joystick
-                Arm.setPower(gamepad2.left_stick_y);
+                Arm.setPower(-gamepad2.left_stick_y);
             } else {
                 // At Rest
                 Arm.setPower(0.0);
@@ -284,9 +290,9 @@ public class PenguinsTeleOp extends LinearOpMode {
                 // Slide In
                 // I don't think a limit check is ever necessary here, but just in case...
                 Slide.setPower(-1);
-            } else if (getNewRobotLength(ABSOLUTE_DELTA_LENGTH_INCHES * gamepad2.right_stick_y, 0.0)) {
+            } else if (getNewRobotLength(ABSOLUTE_DELTA_LENGTH_INCHES * -gamepad2.right_stick_y, 0.0)) {
                 // Go by gamepad2 joystick
-                Slide.setPower(gamepad2.right_stick_y);
+                Slide.setPower(-gamepad2.right_stick_y);
             } else {
                 // At Rest
                 Slide.setPower(0);
@@ -313,7 +319,7 @@ public class PenguinsTeleOp extends LinearOpMode {
             }
 
             // Claw Code
-            if (gamepad1.y || gamepad2.right_bumper || gamepad2.left_bumper) {
+            if (gamepad1.y || gamepad2.right_bumper) {
                 // Open Position
                 Claw.setPosition(0.3);
             } else {
@@ -404,9 +410,8 @@ public class PenguinsTeleOp extends LinearOpMode {
         clawLengthAdditionalInches = Math.sin(Math.toRadians(armAngleDeg)) * CLAW_LENGTH_INCHES;
         currentRobotLengthInches += clawLengthAdditionalInches;
 
+        // Don't let the arm go too far back
         if (armAngleDeg > MAX_ARM_ANGLE_DEGREES) {
-            // Don't let the arm go too far such
-            //   that the motor hangs out the back
             return false;
         } else {
             // Determine if the robot is within its size limit
