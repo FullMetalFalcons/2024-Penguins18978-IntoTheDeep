@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -31,107 +32,67 @@ public class SquareTestRoute extends LinearOpMode {
 
     public class ArmClass {
         private DcMotorEx Arm;
+        private DcMotorEx Slide;
         public ArmClass(HardwareMap hardwareMap) {
             Arm = hardwareMap.get(DcMotorEx.class, DRIVE_PARAMS.armName);
             Arm.setDirection(DRIVE_PARAMS.armDirection);
 
+            Slide = hardwareMap.get(DcMotorEx.class, DRIVE_PARAMS.slideName);
+            Slide.setDirection(DRIVE_PARAMS.slideDirection);
+
             // The arm will hold its position when given 0.0 power
             Arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            // Reset the arm's position, then let the code control it
+            Slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            // Reset the arm's encoder position
             Arm.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-            Arm.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+            Slide.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         }
 
-        public class ArmToPosition implements Action {
+        public class ArmSlideToPosition implements Action {
             // Use constructor parameter to set target position
-            private double targetPosition;
-            public ArmToPosition(double targetPos) {
-                targetPosition = targetPos;
+            private int targetArmPosition;
+            private int targetSlidePosition;
+            public ArmSlideToPosition(int armPos, int slidePos) {
+                super();
+                targetArmPosition = armPos;
+                targetSlidePosition = slidePos;
             }
 
-            private double armMovementDirection = 0;
             private boolean initialized = false;
 
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                double position = Arm.getCurrentPosition();
-                packet.put("Arm Position", position);
-
-                // If the target position is higher than the current
-                //   position use positive power:  else, use negative power
+                //double position = Arm.getCurrentPosition();
+                //packet.put("Arm Position", position);
 
                 if (!initialized) {
-                    armMovementDirection = (targetPosition > position ? 1 : -1);
-                    Arm.setPower(0.8 * armMovementDirection);
+                    Arm.setTargetPosition(targetArmPosition);
+                    Arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                    Slide.setTargetPosition(targetSlidePosition);
+                    Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     initialized = true;
                 }
+                packet.put("Target Position", Arm.getTargetPosition());
+                packet.put("Arm isBusy", Arm.isBusy());
 
-                if ((position < targetPosition && armMovementDirection == 1) || (position > targetPosition && armMovementDirection == -1)) {
+
+                if (Arm.isBusy() || Slide.isBusy()) {
                     // Returning true will run the action again
+                    Arm.setPower(0.8);
+                    Slide.setPower(0.8);
                     return true;
                 } else {
                     // Returning false will end the action
                     Arm.setPower(0);
+                    Slide.setPower(0);
                     return false;
                 }
             }
         }
-        public Action ArmToPosition(double targetPosition) {
-            return new ArmToPosition(targetPosition);
+        public Action ArmToPosition(int targetArmPosition, int targetSlidePosition) {
+            return new ArmSlideToPosition(targetArmPosition, targetSlidePosition);
         }
-
-
-        /*
-        public class ArmOffFloor implements Action {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    Arm.setPower(0.8);
-                    initialized = true;
-                }
-
-                double position = Arm.getCurrentPosition();
-                packet.put("Arm Position", position);
-                if (position < 500.0) {
-                    return true;
-                } else {
-                    Arm.setPower(0);
-                    return false;
-                }
-            }
-        }
-        public Action ArmOffFloor() {
-            return new ArmOffFloor();
-        }
-
-
-        public class ArmToFloor implements Action {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    Arm.setPower(-0.8);
-                    initialized = true;
-                }
-
-                double position = Arm.getCurrentPosition();
-                packet.put("Arm Position", position);
-                if (position > 0.0) {
-                    return true;
-                } else {
-                    Arm.setPower(0);
-                    return false;
-                }
-            }
-        }
-        public Action ArmToFloor(){
-            return new ArmToFloor();
-        }
-    */
-
     }
 
 
@@ -186,9 +147,9 @@ public class SquareTestRoute extends LinearOpMode {
 
         Actions.runBlocking(
                 new SequentialAction(
-                        arm.ArmToPosition(2000),
+                        arm.ArmToPosition(2000, 2000),
                         trajectoryActionChosen,
-                        arm.ArmToPosition(0)
+                        arm.ArmToPosition(0, 0)
                 )
         );
     }
