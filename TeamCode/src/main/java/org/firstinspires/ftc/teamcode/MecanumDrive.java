@@ -74,6 +74,13 @@ public class MecanumDrive {
         public DcMotorSimple.Direction rightFrontDriveDirection = DcMotorSimple.Direction.FORWARD;
         public DcMotorSimple.Direction rightBackDriveDirection = DcMotorSimple.Direction.FORWARD;
 
+        // accesory motors setup
+        public String armName = "arm";
+        public DcMotorSimple.Direction armDirection = DcMotorSimple.Direction.FORWARD;
+
+        public String slideName = "slide";
+        public  DcMotorSimple.Direction slideDirection = DcMotorSimple.Direction.REVERSE;
+
 
         // drive model parameters
         public double inPerTick = 1.0; // SparkFun OTOS Note: you can probably leave this at 1

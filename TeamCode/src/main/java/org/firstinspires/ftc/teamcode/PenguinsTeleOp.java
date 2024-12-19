@@ -83,8 +83,8 @@ public class PenguinsTeleOp extends LinearOpMode {
         m2 = (DcMotorEx) hardwareMap.dcMotor.get(DRIVE_PARAMS.rightFrontDriveName);
         m3 = (DcMotorEx) hardwareMap.dcMotor.get(DRIVE_PARAMS.leftBackDriveName);
         m4 = (DcMotorEx) hardwareMap.dcMotor.get(DRIVE_PARAMS.rightBackDriveName);
-        Arm = (DcMotorEx) hardwareMap.dcMotor.get("arm");
-        Slide = (DcMotorEx) hardwareMap.dcMotor.get("slide");
+        Arm = (DcMotorEx) hardwareMap.dcMotor.get(DRIVE_PARAMS.armName);
+        Slide = (DcMotorEx) hardwareMap.dcMotor.get(DRIVE_PARAMS.slideName);
         Hanger = (DcMotorEx) hardwareMap.dcMotor.get("linearActuator");
 
         Claw = (Servo) hardwareMap.servo.get("claw");
@@ -96,8 +96,8 @@ public class PenguinsTeleOp extends LinearOpMode {
         m3.setDirection(DRIVE_PARAMS.leftBackDriveDirection);
         m4.setDirection(DRIVE_PARAMS.rightBackDriveDirection);
 
-        Slide.setDirection(DcMotorSimple.Direction.REVERSE);
-        Hanger.setDirection(DcMotorSimple.Direction.REVERSE);
+        Slide.setDirection(DRIVE_PARAMS.slideDirection);
+        Hanger.setDirection(DRIVE_PARAMS.slideDirection);
 
 
         //This resets the encoder values when the code is initialized
