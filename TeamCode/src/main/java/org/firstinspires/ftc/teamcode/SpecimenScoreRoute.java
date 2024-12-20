@@ -24,15 +24,11 @@ public class SpecimenScoreRoute extends LinearOpMode {
 
 
         Action toBarTrajectory;
-        Action resetPositionTrajectory;
 
         toBarTrajectory = drive.actionBuilder(drive.pose)
                 .lineToY(11)
                 .build();
 
-        resetPositionTrajectory = drive.actionBuilder(drive.pose)
-                .strafeTo(new Vector2d(0, 0))
-                .build();
 
         waitForStart();
         if (isStopRequested()) return;
@@ -41,15 +37,12 @@ public class SpecimenScoreRoute extends LinearOpMode {
                 new SequentialAction(
                         toBarTrajectory,
                         arm.armToPosition(arm.ARM_SPECIMEN_READY_DEGREES, arm.SLIDE_SPECIMEN_READY_INCHES),
-                        arm.armToPosition(arm.ARM_SPECIMEN_SCORE_DEGREES, arm.HOLD_POSITION),
-                        arm.armToPosition(arm.HOLD_POSITION, arm.SLIDE_SPECIMEN_SCORE_INCHES),
+                        arm.armToPosition(arm.ARM_SPECIMEN_SCORE_DEGREES, arm.SLIDE_SPECIMEN_READY_INCHES),
+                        arm.armToPosition(arm.ARM_SPECIMEN_SCORE_DEGREES, arm.SLIDE_SPECIMEN_SCORE_INCHES),
                         arm.clawToPosition(arm.CLAW_OPEN),
-                        new SleepAction(0.5),
+                        new SleepAction(0.2),
                         arm.clawToPosition(arm.CLAW_CLOSED),
-                        new ParallelAction(
-                            arm.armToPosition(arm.ARM_RESET_DEGREES, arm.SLIDE_RESET_INCHES),
-                            resetPositionTrajectory
-                        )
+                        arm.armToPosition(arm.ARM_RESET_DEGREES, arm.SLIDE_RESET_INCHES)
                 )
         );
     }

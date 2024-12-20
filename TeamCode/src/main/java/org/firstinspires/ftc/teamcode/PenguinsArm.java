@@ -17,7 +17,7 @@ public class PenguinsArm {
     private Telemetry telemetry;
 
     // Known Slide/Arm/Claw positions
-    public final double HOLD_POSITION = Integer.MAX_VALUE;
+    public final double HOLD_POSITION = Double.MAX_VALUE;
 
     public final double ARM_RESET_DEGREES = 0;
     public final double SLIDE_RESET_INCHES = 0;
@@ -25,8 +25,8 @@ public class PenguinsArm {
     public final double ARM_SPECIMEN_READY_DEGREES = 53;
     public final double SLIDE_SPECIMEN_READY_INCHES = 23;
 
-    public final double ARM_SPECIMEN_SCORE_DEGREES = 49;
-    public final double SLIDE_SPECIMEN_SCORE_INCHES = 16;
+    public final double ARM_SPECIMEN_SCORE_DEGREES = 43;  //49
+    public final double SLIDE_SPECIMEN_SCORE_INCHES = 17;
 
     public final double CLAW_OPEN = 0.3;
     public final double CLAW_CLOSED = 0.6;
