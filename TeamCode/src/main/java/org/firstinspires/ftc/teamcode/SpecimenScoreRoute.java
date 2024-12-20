@@ -41,6 +41,7 @@ public class SpecimenScoreRoute extends LinearOpMode {
 
 
         Action fullScoringTrajectory;
+        Action scoreSpecimenSequence;
 
         fullScoringTrajectory = drive.actionBuilder(drive.pose)
                 .waitSeconds(0.5)
@@ -56,23 +57,36 @@ public class SpecimenScoreRoute extends LinearOpMode {
                 .splineToLinearHeading(new Pose2d( PARKING_POSITION_X, PARKING_POSITION_Y, Math.toRadians(180)), 0)
                 .build();
 
+        scoreSpecimenSequence =
+                new SequentialAction(
+                    new ParallelAction(
+                            arm.armToPosition(arm.ARM_SPECIMEN_READY_DEGREES, arm.SLIDE_SPECIMEN_READY_INCHES),
+                            drive.actionBuilder(drive.pose).strafeToLinearHeading(new Vector2d( SCORING_POSITION_X, SCORING_POSITION_Y ), Math.toRadians(90)).build()
+                    ),
+                    arm.armToPosition(arm.ARM_SPECIMEN_SCORE_DEGREES, arm.SLIDE_SPECIMEN_READY_INCHES),
+                    arm.armToPosition(arm.ARM_SPECIMEN_SCORE_DEGREES, arm.SLIDE_SPECIMEN_SCORE_INCHES),
+                    arm.clawToPosition(arm.CLAW_OPEN),
+                    new SleepAction(0.2),
+                    arm.armToPosition(arm.ARM_RESET_DEGREES, arm.SLIDE_RESET_INCHES)
+                );
+
+
 
         waitForStart();
         if (isStopRequested()) return;
 
         Actions.runBlocking(
                 new SequentialAction(
-                        new ParallelAction(
-                                arm.armToPosition(arm.ARM_SPECIMEN_READY_DEGREES, arm.SLIDE_SPECIMEN_READY_INCHES),
-                                drive.actionBuilder(drive.pose).strafeTo(new Vector2d(SCORING_POSITION_X, SCORING_POSITION_Y)).build()
-                        ),
-//                        arm.armToPosition(arm.ARM_SPECIMEN_READY_DEGREES, arm.SLIDE_SPECIMEN_READY_INCHES),
-                        arm.armToPosition(arm.ARM_SPECIMEN_SCORE_DEGREES, arm.SLIDE_SPECIMEN_READY_INCHES),
-                        arm.armToPosition(arm.ARM_SPECIMEN_SCORE_DEGREES, arm.SLIDE_SPECIMEN_SCORE_INCHES),
-                        arm.clawToPosition(arm.CLAW_OPEN),
-                        new SleepAction(0.2),
+                        // Score pre-loaded specimen
+                        scoreSpecimenSequence,
+                        // Drive to get another
+                        drive.actionBuilder(drive.pose).splineToLinearHeading(new Pose2d( PICKUP_POSITION_X, PICKUP_POSITION_Y, 0), 0).build(),
                         arm.clawToPosition(arm.CLAW_CLOSED),
-                        arm.armToPosition(arm.ARM_RESET_DEGREES, arm.SLIDE_RESET_INCHES)
+                        new SleepAction(0.2),
+                        // Score the newly grabbed specimen
+                        scoreSpecimenSequence,
+                        // Park in the Observation Zone
+                        drive.actionBuilder(drive.pose).splineToLinearHeading(new Pose2d( PARKING_POSITION_X, PARKING_POSITION_Y, Math.toRadians(180)), 0).build()
                 )
         );
     }

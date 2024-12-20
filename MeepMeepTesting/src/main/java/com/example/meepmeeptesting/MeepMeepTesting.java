@@ -37,7 +37,7 @@ public class MeepMeepTesting {
         // Set starting pose and run a sample trajectory (the +0's are use to make the parameter names appear)
         myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(STARTING_POSITION_X, STARTING_POSITION_Y, Math.toRadians(90)))
                 .waitSeconds(0.5)
-                .strafeTo(new Vector2d( SCORING_POSITION_X, SCORING_POSITION_Y ) )
+                .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X, SCORING_POSITION_Y ), Math.toRadians(90))
                 // Pause to score specimen
                 .waitSeconds(10)
                 .splineToLinearHeading(new Pose2d( PICKUP_POSITION_X, PICKUP_POSITION_Y, 0), 0)
