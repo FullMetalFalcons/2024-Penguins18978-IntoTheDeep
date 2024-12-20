@@ -1,6 +1,7 @@
 package com.example.meepmeeptesting;
 
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.noahbres.meepmeep.MeepMeep;
 import com.noahbres.meepmeep.roadrunner.DefaultBotBuilder;
 import com.noahbres.meepmeep.roadrunner.entity.RoadRunnerBotEntity;
@@ -9,23 +10,33 @@ public class MeepMeepTesting {
     public static void main(String[] args) {
         MeepMeep meepMeep = new MeepMeep(800);
 
+        // Set up constants for the size of the robot
+        int botWidth = 18;
+
+        // Set up constants for "preset" field locations
+        int STARTING_POSITION_Y = -70 + (botWidth/2);
+        int STARTING_POSITION_X = 9;
+
         // Create the virtual robot that will move
         RoadRunnerBotEntity myBot = new DefaultBotBuilder(meepMeep)
                 // Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
-                .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
+                .setConstraints(50, 50, Math.toRadians(90), Math.toRadians(90), 12)
                 .build();
 
 
-        // Set starting pose and run a sample trajectory
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(0, 0, 0))
-                .lineToX(30)
-                .turn(Math.toRadians(90))
-                .lineToY(30)
-                .turn(Math.toRadians(90))
-                .lineToX(0)
-                .turn(Math.toRadians(90))
-                .lineToY(0)
-                .turn(Math.toRadians(90))
+        // Set starting pose and run a sample trajectory (the +0's are use to make the parameter names appear)
+        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(STARTING_POSITION_X, STARTING_POSITION_Y, Math.toRadians(90)))
+                .waitSeconds(0.5)
+                .strafeTo(new Vector2d(STARTING_POSITION_X, STARTING_POSITION_Y +11))
+                // Pause to score specimen
+                .waitSeconds(10)
+                .splineToLinearHeading(new Pose2d(40, STARTING_POSITION_Y +3, 0), 0)
+                // Pause to grab specimen
+                .waitSeconds(1)
+                .strafeToLinearHeading(new Vector2d(STARTING_POSITION_X, STARTING_POSITION_Y +11), Math.toRadians(90))
+                // Pause to score specimen
+                .waitSeconds(10)
+                .splineToLinearHeading(new Pose2d(48, STARTING_POSITION_Y +3, Math.toRadians(180)), 0)
                 .build());
 
 
