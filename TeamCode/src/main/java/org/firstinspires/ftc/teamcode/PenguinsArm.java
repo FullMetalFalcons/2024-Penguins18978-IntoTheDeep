@@ -17,7 +17,7 @@ public class PenguinsArm {
     private Telemetry telemetry;
 
     // Known Slide/Arm/Claw positions
-    public final double HOLD_POSITION = Double.MAX_VALUE;
+    public final double HOLD_POSITION = -10;
 
     public final double ARM_RESET_DEGREES = 11;
     public final double SLIDE_RESET_INCHES = 0;
@@ -181,7 +181,7 @@ public class PenguinsArm {
         private int targetSlidePositionTicks;
         public ArmSlideToPosition(double armPosDegrees, double slidePosInches) {
             super();
-            if (armPosDegrees == HOLD_POSITION) {
+            if (armPosDegrees < 0) {
                 // The arm should not move
                 targetArmPositionTicks = Arm.getCurrentPosition();
             } else {
@@ -189,7 +189,7 @@ public class PenguinsArm {
                 targetArmPositionTicks = (int) (armPosDegrees/DEGREES_PER_ARM_TICK - INITIAL_ARM_ENCODER);
             }
 
-            if (slidePosInches == HOLD_POSITION) {
+            if (slidePosInches < 0) {
                 // The slide should not move
                 targetSlidePositionTicks = Slide.getCurrentPosition();
             } else {
