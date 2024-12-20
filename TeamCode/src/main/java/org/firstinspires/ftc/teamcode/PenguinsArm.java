@@ -227,8 +227,12 @@ public class PenguinsArm {
                 Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 initialized = true;
             }
-            //packet.put("Target Position", Arm.getTargetPosition());
-            //packet.put("Arm isBusy", Arm.isBusy());
+            packet.put("Target Arm Position", targetArmPositionTicks);
+            packet.put("Actual Arm Position", Arm.getTargetPosition());
+            packet.put("Arm isBusy", Arm.isBusy());
+            packet.put("Target Slide Position", targetSlidePositionTicks);
+            packet.put("Actual Slide Position", Slide.getTargetPosition());
+            packet.put("Slide isBusy", Slide.isBusy());
 
             //TODO Add limit checks
             if (Arm.isBusy() || Slide.isBusy()) {

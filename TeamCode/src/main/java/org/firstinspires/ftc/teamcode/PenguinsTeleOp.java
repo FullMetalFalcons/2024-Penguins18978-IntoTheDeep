@@ -39,6 +39,7 @@ public class PenguinsTeleOp extends LinearOpMode {
     public PIDFCoefficients slidePID = new PIDFCoefficients(slide_p, slide_i, slide_d, 0);
 
     public PenguinsArm.ArmSlideToPosition autoArmSlider = null;
+    public TelemetryPacketOpMode telemetryPacket = null;
 
 
 
@@ -51,6 +52,7 @@ public class PenguinsTeleOp extends LinearOpMode {
 
     public void runOpMode() {
         penguinsArm = new PenguinsArm(hardwareMap, telemetry);
+        telemetryPacket = new TelemetryPacketOpMode(telemetry);
 
         //Define those motors and stuff
         //The string should be the name on the Driver Hub
@@ -209,7 +211,7 @@ public class PenguinsTeleOp extends LinearOpMode {
                 penguinsArm.setSlidePower(desiredSlidePower);
             } else {
                 // Run the auto action until it finishes
-                if(autoArmSlider.run(null) == false){  //TODO Need to fix this Telemetry Packet
+                if(autoArmSlider.run(telemetryPacket) == false){
                     //We've finished the auto movement, return to manual mode
                     autoArmSlider = null;
                 }
