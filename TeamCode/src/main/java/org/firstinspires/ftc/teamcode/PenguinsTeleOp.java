@@ -5,10 +5,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import com.acmerobotics.roadrunner.Pose2d;
@@ -198,7 +196,7 @@ public class PenguinsTeleOp extends LinearOpMode {
             if (gamepad2.dpad_down && autoArmSlider == null) {
                 autoArmSlider = penguinsArm.armToPosition(penguinsArm.ARM_RESET_DEGREES, penguinsArm.SLIDE_RESET_INCHES);
             } else if (gamepad2.dpad_up && autoArmSlider == null) {
-                autoArmSlider = penguinsArm.armToPosition(penguinsArm.ARM_SPECIMEN_SCORE_DEGREES, penguinsArm.SLIDE_SPECIMEN_SCORE_INCHES);
+                autoArmSlider = penguinsArm.armToPosition(penguinsArm.ARM_SPECIMEN_READY_DEGREES, penguinsArm.SLIDE_SPECIMEN_READY_INCHES);
             }
 
             if (desiredArmPower != 0 || desiredSlidePower != 0) {
@@ -217,6 +215,17 @@ public class PenguinsTeleOp extends LinearOpMode {
                 }
             }
 
+
+            // Claw Code
+            if (gamepad1.y || gamepad2.right_bumper) {
+                // Open Position
+                penguinsArm.setClawPosition(penguinsArm.CLAW_OPEN);
+            } else {
+                // Closed Position
+                penguinsArm.setClawPosition(penguinsArm.CLAW_CLOSED);
+            }
+
+
             // Hanging Arm Code
             if (gamepad2.left_bumper) {
                 // Actuator Out
@@ -233,16 +242,6 @@ public class PenguinsTeleOp extends LinearOpMode {
                     // Stop if fully back
                     Hanger.setPower(0);
                 }
-            }
-
-
-            // Claw Code
-            if (gamepad1.y || gamepad2.right_bumper) {
-                // Open Position
-                Claw.setPosition(0.3);
-            } else {
-                // Closed Position
-                Claw.setPosition(0.6);
             }
 
 

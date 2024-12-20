@@ -69,8 +69,10 @@ public class SquareTestRoute extends LinearOpMode {
 
         Actions.runBlocking(
                 new SequentialAction(
-                        arm.armToPosition(arm.ARM_SPECIMEN_SCORE_DEGREES, arm.SLIDE_SPECIMEN_SCORE_INCHES),
+                        arm.armToPosition(arm.ARM_SPECIMEN_READY_DEGREES, arm.SLIDE_SPECIMEN_READY_INCHES),
+                        arm.clawToPosition(arm.CLAW_OPEN),
                         trajectoryActionChosen,
+                        arm.clawToPosition(arm.CLAW_CLOSED),
                         arm.armToPosition(arm.ARM_RESET_DEGREES, arm.SLIDE_RESET_INCHES)
                 )
         );

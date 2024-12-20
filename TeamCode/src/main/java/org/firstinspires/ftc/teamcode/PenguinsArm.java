@@ -16,12 +16,20 @@ public class PenguinsArm {
     public static MecanumDrive.Params DRIVE_PARAMS = new MecanumDrive.Params();
     private Telemetry telemetry;
 
-    // Known Slide/Arm positions
-    public final double ARM_SPECIMEN_SCORE_DEGREES = 45;
-    public final double SLIDE_SPECIMEN_SCORE_INCHES = 20;
+    // Known Slide/Arm/Claw positions
+    public final double HOLD_POSITION = Integer.MAX_VALUE;
 
     public final double ARM_RESET_DEGREES = 0;
     public final double SLIDE_RESET_INCHES = 0;
+
+    public final double ARM_SPECIMEN_READY_DEGREES = 53;
+    public final double SLIDE_SPECIMEN_READY_INCHES = 23;
+
+    public final double ARM_SPECIMEN_SCORE_DEGREES = 49;
+    public final double SLIDE_SPECIMEN_SCORE_INCHES = 16;
+
+    public final double CLAW_OPEN = 0.3;
+    public final double CLAW_CLOSED = 0.6;
 
     // Encoder storage variables for arm limits
     double slideLengthInches = 0;
@@ -136,7 +144,7 @@ public class PenguinsArm {
 
         getNewRobotLength(0,0);
         telemetry.addData("Arm Angle", armAngleDeg);
-        telemetry.addData("Slide Length", slideLengthInches);
+        telemetry.addData("Slide Length", slideLengthInches - INITIAL_SLIDE_LENGTH_INCHES);
         telemetry.addData("Claw Length", clawLengthAdditionalInches);
         telemetry.addData("Robot Length", currentRobotLengthInches);
 
@@ -173,8 +181,21 @@ public class PenguinsArm {
         private int targetSlidePositionTicks;
         public ArmSlideToPosition(double armPosDegrees, double slidePosInches) {
             super();
-            targetArmPositionTicks = (int) (armPosDegrees/DEGREES_PER_ARM_TICK - INITIAL_ARM_ENCODER);
-            targetSlidePositionTicks = (int) (slidePosInches/INCHES_PER_SLIDE_TICK);
+            if (armPosDegrees == HOLD_POSITION) {
+                // The arm should not move
+                targetArmPositionTicks = Arm.getCurrentPosition();
+            } else {
+                // Convert target degrees to target ticks
+                targetArmPositionTicks = (int) (armPosDegrees/DEGREES_PER_ARM_TICK - INITIAL_ARM_ENCODER);
+            }
+
+            if (slidePosInches == HOLD_POSITION) {
+                // The slide should not move
+                targetSlidePositionTicks = Slide.getCurrentPosition();
+            } else {
+                // Convert target inches to target ticks
+                targetSlidePositionTicks = (int) (slidePosInches/INCHES_PER_SLIDE_TICK);
+            }
         }
 
         private boolean initialized = false;
