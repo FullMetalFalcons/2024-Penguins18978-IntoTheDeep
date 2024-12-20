@@ -19,7 +19,7 @@ public class PenguinsArm {
     // Known Slide/Arm/Claw positions
     public final double HOLD_POSITION = Double.MAX_VALUE;
 
-    public final double ARM_RESET_DEGREES = 0;
+    public final double ARM_RESET_DEGREES = 11;
     public final double SLIDE_RESET_INCHES = 0;
 
     public final double ARM_SPECIMEN_READY_DEGREES = 53;
@@ -156,7 +156,7 @@ public class PenguinsArm {
     }
 
 
-    public class ClawToPosition implements  Action {
+    public class ClawToPosition implements Action {
         // Use constructor parameter to set target position
         private double targetClawPosition;
         public ClawToPosition(double clawPos) {
@@ -171,7 +171,7 @@ public class PenguinsArm {
         }
     }
     public ClawToPosition clawToPosition(double clawPos) {
-        return  new ClawToPosition(clawPos);
+        return new ClawToPosition(clawPos);
     }
 
 
