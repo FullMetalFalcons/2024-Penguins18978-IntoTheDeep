@@ -35,7 +35,8 @@ public class SpecimenScoreRoute extends LinearOpMode {
 
         Actions.runBlocking(
                 new SequentialAction(
-                        toBarTrajectory,
+                        arm.armToPosition(arm.ARM_SPECIMEN_READY_DEGREES, arm.SLIDE_RESET_INCHES),
+                        drive.actionBuilder(drive.pose).lineToY(11).build(),
                         arm.armToPosition(arm.ARM_SPECIMEN_READY_DEGREES, arm.SLIDE_SPECIMEN_READY_INCHES),
                         arm.armToPosition(arm.ARM_SPECIMEN_SCORE_DEGREES, arm.SLIDE_SPECIMEN_READY_INCHES),
                         arm.armToPosition(arm.ARM_SPECIMEN_SCORE_DEGREES, arm.SLIDE_SPECIMEN_SCORE_INCHES),
