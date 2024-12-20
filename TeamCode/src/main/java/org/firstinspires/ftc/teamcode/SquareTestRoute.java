@@ -1,13 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
-import androidx.annotation.NonNull;
-
 // RoadRunner Specific Imports
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.ParallelAction;
-import com.acmerobotics.roadrunner.Pose2d;
+        import com.acmerobotics.roadrunner.Action;
+        import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
@@ -15,10 +11,6 @@ import com.acmerobotics.roadrunner.ftc.Actions;
 // Regular FTC Imports
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 
 /*
   Wireless Code Download: Terminal --> "adb connect 192.168.43.1:5555"
@@ -29,7 +21,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class SquareTestRoute extends LinearOpMode {
     public void runOpMode() {
         PinpointDrive drive = new PinpointDrive(hardwareMap, new Pose2d(0, 0, Math.toRadians(90)));
-        PenguinsArm arm = new PenguinsArm(hardwareMap);
+        PenguinsArm arm = new PenguinsArm(hardwareMap, telemetry);
 
         Action turnTrajectory;
         Action strafeTrajectory;
@@ -77,9 +69,9 @@ public class SquareTestRoute extends LinearOpMode {
 
         Actions.runBlocking(
                 new SequentialAction(
-                        arm.ArmToPosition(2000, 2000),
+                        arm.armToPosition(arm.ARM_SPECIMEN_SCORE_DEGREES, arm.SLIDE_SPECIMEN_SCORE_INCHES),
                         trajectoryActionChosen,
-                        arm.ArmToPosition(0, 0)
+                        arm.armToPosition(arm.ARM_RESET_DEGREES, arm.SLIDE_RESET_INCHES)
                 )
         );
     }

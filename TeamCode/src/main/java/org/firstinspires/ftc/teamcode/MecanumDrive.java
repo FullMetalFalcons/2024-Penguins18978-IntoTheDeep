@@ -81,6 +81,8 @@ public class MecanumDrive {
         public String slideName = "slide";
         public  DcMotorSimple.Direction slideDirection = DcMotorSimple.Direction.REVERSE;
 
+        public String clawName = "claw";
+
 
         // drive model parameters
         public double inPerTick = 1.0; // SparkFun OTOS Note: you can probably leave this at 1
