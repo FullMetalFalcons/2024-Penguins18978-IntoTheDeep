@@ -237,8 +237,8 @@ public class PenguinsArm {
             //TODO Add limit checks
             if (Arm.isBusy() || Slide.isBusy()) {
                 // Returning true will run the action again
-                Arm.setPower(0.8);
-                Slide.setPower(0.8);
+                Arm.setPower(1);
+                Slide.setPower(1);
                 return true;
             } else {
                 // Returning false will end the action
