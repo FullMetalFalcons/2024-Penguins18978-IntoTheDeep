@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -13,7 +14,22 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class PenguinsArm {
-    public static MecanumDrive.Params DRIVE_PARAMS = new MecanumDrive.Params();
+    public static class Params {
+        // accesory motors setup
+        public String armName = "arm";
+        public DcMotorSimple.Direction armDirection = DcMotorSimple.Direction.FORWARD;
+
+        public String slideName = "slide";
+        public  DcMotorSimple.Direction slideDirection = DcMotorSimple.Direction.REVERSE;
+
+        public String hangerName = "linearActuator";
+        public  DcMotorSimple.Direction hangerDirection = DcMotorSimple.Direction.REVERSE;
+
+        public String clawName = "claw";
+    }
+
+
+    public static Params ARM_PARAMS = new Params();
     private Telemetry telemetry;
 
     // Known Slide/Arm/Claw positions
@@ -68,16 +84,16 @@ public class PenguinsArm {
 
     public PenguinsArm(HardwareMap hardwareMap, Telemetry telemetry1) {
         // Set up motors using MecanumDrive constants
-        Arm = hardwareMap.get(DcMotorEx.class, DRIVE_PARAMS.armName);
-        Arm.setDirection(DRIVE_PARAMS.armDirection);
+        Arm = hardwareMap.get(DcMotorEx.class, ARM_PARAMS.armName);
+        Arm.setDirection(ARM_PARAMS.armDirection);
 
-        Slide = hardwareMap.get(DcMotorEx.class, DRIVE_PARAMS.slideName);
-        Slide.setDirection(DRIVE_PARAMS.slideDirection);
+        Slide = hardwareMap.get(DcMotorEx.class, ARM_PARAMS.slideName);
+        Slide.setDirection(ARM_PARAMS.slideDirection);
 
-        Claw = hardwareMap.get(Servo.class, DRIVE_PARAMS.clawName);
+        Claw = hardwareMap.get(Servo.class, ARM_PARAMS.clawName);
 
-        Hanger = hardwareMap.get(DcMotorEx.class, DRIVE_PARAMS.hangerName);
-        Hanger.setDirection(DRIVE_PARAMS.hangerDirection);
+        Hanger = hardwareMap.get(DcMotorEx.class, ARM_PARAMS.hangerName);
+        Hanger.setDirection(ARM_PARAMS.hangerDirection);
 
         // The arm will hold its position when given 0.0 power
         Arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
