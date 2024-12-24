@@ -53,10 +53,10 @@ public class PenguinsTeleOp extends LinearOpMode {
 
         //Define those motors and stuff
         //The string should be the name on the Driver Hub
-        m1 = (DcMotorEx) drive.leftFront;
-        m2 = (DcMotorEx) drive.rightFront;
-        m3 = (DcMotorEx) drive.leftBack;
-        m4 = (DcMotorEx) drive.rightBack;;
+        m1 = drive.leftFront;
+        m2 = drive.rightFront;
+        m3 = drive.leftBack;
+        m4 = drive.rightBack;;
 
         Arm = penguinsArm.Arm;;
         Slide = penguinsArm.Slide;
