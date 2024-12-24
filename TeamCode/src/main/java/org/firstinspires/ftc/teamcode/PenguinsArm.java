@@ -61,9 +61,11 @@ public class PenguinsArm {
     final double ABSOLUTE_DELTA_ANGLE_DEGREES = 7.0;
 
 
-    private DcMotorEx Arm;
-    private DcMotorEx Slide;
-    private Servo Claw;
+    public DcMotorEx Arm;
+    public DcMotorEx Slide;
+    public Servo Claw;
+    public DcMotorEx Hanger;
+
     public PenguinsArm(HardwareMap hardwareMap, Telemetry telemetry1) {
         // Set up motors using MecanumDrive constants
         Arm = hardwareMap.get(DcMotorEx.class, DRIVE_PARAMS.armName);
@@ -74,17 +76,40 @@ public class PenguinsArm {
 
         Claw = hardwareMap.get(Servo.class, DRIVE_PARAMS.clawName);
 
+        Hanger = hardwareMap.get(DcMotorEx.class, DRIVE_PARAMS.hangerName);
+        Hanger.setDirection(DRIVE_PARAMS.hangerDirection);
+
         // The arm will hold its position when given 0.0 power
         Arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         Slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        // Reset the arm's encoder position
-        Arm.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        Slide.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        Hanger.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        // Reset the encoder positions
+        resetArmEncoder();
+        resetSlideEncoder();
+        resetHangerEncoder();
 
         // Allow the class to send data to telemetry
         telemetry = telemetry1;
     }
 
+    public void resetArmEncoder(){
+        // Reset the arm's encoder position
+        Arm.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        Arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
+    public void resetSlideEncoder() {
+        // Reset the slider's encoder position
+        Slide.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        Slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
+    public void resetHangerEncoder() {
+        // Reset the hanger's encoder position
+        Hanger.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        Hanger.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
 
     // Method to check whether the robot will still be within size constraints after the desired movements
     public boolean getNewRobotLength(double deltaLengthInInches, double deltaAngleDeg) {

@@ -8,10 +8,14 @@ import com.acmerobotics.roadrunner.ftc.FlightRecorder;
 import com.acmerobotics.roadrunner.ftc.GoBildaPinpointDriver;
 import com.acmerobotics.roadrunner.ftc.GoBildaPinpointDriverRR;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.messages.PoseMessage;
+
+import java.util.Locale;
 
 /**
  * Experimental extension of MecanumDrive that uses the Gobilda Pinpoint sensor for localization.
@@ -94,6 +98,14 @@ public class PinpointDrive extends MecanumDrive {
 
         pinpoint.setPosition(pose);
     }
+
+    // Alternate constructor to allows users of this class to not be dependent on RR's pose type
+    public PinpointDrive(HardwareMap hardwareMap, double poseX, double poseY, double poseAngleDeg) {
+        // Call the main constructor
+        this(hardwareMap, new Pose2d(poseX, poseY, Math.toRadians(poseAngleDeg)));
+    }
+
+
     @Override
     public PoseVelocity2d updatePoseEstimate() {
         if (lastPinpointPose != pose) {
@@ -121,6 +133,33 @@ public class PinpointDrive extends MecanumDrive {
         FlightRecorder.write("PINPOINT_STATUS",pinpoint.getDeviceStatus());
 
         return pinpoint.getVelocityRR();
+    }
+
+    public void addDebugData(Telemetry telemetry){
+        // gets the current Position (x & y in inches, and heading in degrees) of the robot
+        PoseVelocity2d vel = updatePoseEstimate();
+
+        String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}",
+                lastPinpointPose.position.x,
+                lastPinpointPose.position.y,
+                Math.toDegrees(lastPinpointPose.heading.toDouble()));
+        telemetry.addData("Position", data);
+
+        // gets the current Velocity (x & y in inches/sec and heading in degrees/sec) and prints it.
+        String velocity = String.format(Locale.US,"{XVel: %.3f, YVel: %.3f, HVel: %.3f}", vel.linearVel.x, vel.linearVel.y, Math.toDegrees(vel.angVel));
+        telemetry.addData("Velocity", velocity);
+        telemetry.addData("Pinpoint Frequency", pinpoint.getFrequency()); //prints/gets the current refresh rate of the Pinpoint
+
+            /*
+            Gets the Pinpoint device status. Pinpoint can reflect a few states. But we'll primarily see
+            READY: the device is working as normal
+            CALIBRATING: the device is calibrating and outputs are put on hold
+            NOT_READY: the device is resetting from scratch. This should only happen after a power-cycle
+            FAULT_NO_PODS_DETECTED - the device does not detect any pods plugged in
+            FAULT_X_POD_NOT_DETECTED - The device does not detect an X pod plugged in
+            FAULT_Y_POD_NOT_DETECTED - The device does not detect a Y pod plugged in
+            */
+        telemetry.addData("Status", pinpoint.getDeviceStatus());
     }
 
 

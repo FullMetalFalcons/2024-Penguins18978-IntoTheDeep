@@ -81,6 +81,9 @@ public class MecanumDrive {
         public String slideName = "slide";
         public  DcMotorSimple.Direction slideDirection = DcMotorSimple.Direction.REVERSE;
 
+        public String hangerName = "linearActuator";
+        public  DcMotorSimple.Direction hangerDirection = DcMotorSimple.Direction.REVERSE;
+
         public String clawName = "claw";
 
 
