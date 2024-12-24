@@ -5,7 +5,6 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 
@@ -15,41 +14,21 @@ public class PenguinsTeleOp extends LinearOpMode {
     //Initialize motors, servos, sensors, imus, etc.
     DcMotorEx m1, m2, m3, m4, Arm, Slide, Hanger;
     Servo Claw;
-    public static MecanumDrive.Params DRIVE_PARAMS = new MecanumDrive.Params();
-    public static PinpointDrive.Params PINPOINT_PARAMS = new PinpointDrive.Params();
-
-    public PenguinsArm penguinsArm = null;
-
-    public static double arm_p = 5;
-    public static double arm_i = 0.05;
-    public static double arm_d = 0;
-
-    public static double slide_p = 5;
-    public static double slide_i = 0.05;
-    public static double slide_d = 0;
-
-    // Built-in PID loops for RUN_TO_POSITION
-    public PIDFCoefficients armPID = new PIDFCoefficients(arm_p, arm_i, arm_d, 0);
-    public PIDFCoefficients slidePID = new PIDFCoefficients(slide_p, slide_i, slide_d, 0);
-
-    public PenguinsArm.ArmSlideToPosition autoArmSlider = null;
-    public TelemetryPacketOpMode telemetryPacket = null;
-
-
 
     // Custom Controls variables
     double virtualRightStickX = 0.0;
 
     // Set up constants for the size of the robot
-    int botWidth = 18;
+    public final double BOT_WIDTH = 18.0;
     // Set up constants for "preset" field locations
-    int STARTING_POSITION_Y = -70 + (botWidth/2);
-    int STARTING_POSITION_X = 9;
+    public final double STARTING_POSITION_Y = -70.0 + (BOT_WIDTH /2);
+    public final double STARTING_POSITION_X = 9.0;
+    public final double STARTING_ANGLE_DEG = 90.0;
 
     public void runOpMode() {
-        PinpointDrive drive = new PinpointDrive(hardwareMap, STARTING_POSITION_X, STARTING_POSITION_Y,90);
-        penguinsArm = new PenguinsArm(hardwareMap, telemetry);
-        telemetryPacket = new TelemetryPacketOpMode(telemetry);
+        PinpointDrive drive = new PinpointDrive(hardwareMap, STARTING_POSITION_X, STARTING_POSITION_Y, STARTING_ANGLE_DEG);
+        PenguinsArm penguinsArm = new PenguinsArm(hardwareMap, telemetry);
+        TelemetryPacketOpMode telemetryPacket = new TelemetryPacketOpMode(telemetry);
 
         //Define those motors and stuff
         //The string should be the name on the Driver Hub
@@ -70,6 +49,9 @@ public class PenguinsTeleOp extends LinearOpMode {
         //m2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         //m3.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         //m4.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        //This is to keep track of the current (if any) auto arm slide Action in progress
+        PenguinsArm.ArmSlideToPosition autoArmSlider = null;
 
         waitForStart();
 
