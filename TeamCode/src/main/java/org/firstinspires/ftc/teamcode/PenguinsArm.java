@@ -61,9 +61,9 @@ public class PenguinsArm {
     final double ABSOLUTE_DELTA_ANGLE_DEGREES = 7.0;
 
 
-    private DcMotorEx Arm;
-    private DcMotorEx Slide;
-    private Servo Claw;
+    public DcMotorEx Arm;
+    public DcMotorEx Slide;
+    public Servo Claw;
     public PenguinsArm(HardwareMap hardwareMap, Telemetry telemetry1) {
         // Set up motors using MecanumDrive constants
         Arm = hardwareMap.get(DcMotorEx.class, DRIVE_PARAMS.armName);
@@ -158,7 +158,7 @@ public class PenguinsArm {
 
     public class ClawToPosition implements Action {
         // Use constructor parameter to set target position
-        private double targetClawPosition;
+        protected double targetClawPosition;
         public ClawToPosition(double clawPos) {
             super();
             targetClawPosition = clawPos;
@@ -177,8 +177,8 @@ public class PenguinsArm {
 
     public class ArmSlideToPosition implements Action {
         // Use constructor parameter to set target position
-        private int targetArmPositionTicks;
-        private int targetSlidePositionTicks;
+        protected int targetArmPositionTicks;
+        protected int targetSlidePositionTicks;
         public ArmSlideToPosition(double armPosDegrees, double slidePosInches) {
             super();
             if (armPosDegrees < 0) {
@@ -198,7 +198,7 @@ public class PenguinsArm {
             }
         }
 
-        private boolean initialized = false;
+        protected boolean initialized = false;
 
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {

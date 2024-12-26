@@ -38,7 +38,7 @@ public class PenguinsTeleOp extends LinearOpMode {
     public PIDFCoefficients armPID = new PIDFCoefficients(arm_p, arm_i, arm_d, 0);
     public PIDFCoefficients slidePID = new PIDFCoefficients(slide_p, slide_i, slide_d, 0);
 
-    public PenguinsArm.ArmSlideToPosition autoArmSlider = null;
+    public PenguinsArmPID.ArmSlideToPosition autoArmSlider = null;
     public TelemetryPacketOpMode telemetryPacket = null;
 
 
@@ -51,7 +51,7 @@ public class PenguinsTeleOp extends LinearOpMode {
     GoBildaPinpointDriverRR odo;
 
     public void runOpMode() {
-        penguinsArm = new PenguinsArm(hardwareMap, telemetry);
+        penguinsArm = new PenguinsArmPID(hardwareMap, telemetry);
         telemetryPacket = new TelemetryPacketOpMode(telemetry);
 
         //Define those motors and stuff
