@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -15,6 +17,10 @@ public class PenguinsTeleOp extends LinearOpMode {
     DcMotorEx m1, m2, m3, m4, Arm, Slide, Hanger;
     Servo Claw;
 
+    // 'Public static' vars can be viewed and changed on the web dashboard
+    public static double REGULAR_ARM_POWER_UP = 1.0;
+    public static double REGULAR_ARM_POWER_DOWN = -1.0;
+
     // Custom Controls variables
     double virtualRightStickX = 0.0;
 
@@ -26,6 +32,12 @@ public class PenguinsTeleOp extends LinearOpMode {
     public final double STARTING_ANGLE_DEG = 90.0;
 
     public void runOpMode() {
+        //This will send telemetry data to the web dashboard (192.168.43.1:8080/dash)
+        //  in addition to the driver station.
+        //  It also allows any 'public static' class attributes to be viewed and changed
+        //  on the dashboard as well
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+
         PinpointDrive drive = new PinpointDrive(hardwareMap, STARTING_POSITION_X, STARTING_POSITION_Y, STARTING_ANGLE_DEG);
         PenguinsArm penguinsArm = new PenguinsArm(hardwareMap, telemetry);
         TelemetryPacketOpMode telemetryPacket = new TelemetryPacketOpMode(telemetry);
@@ -102,10 +114,10 @@ public class PenguinsTeleOp extends LinearOpMode {
             double desiredArmPower = 0.0;
             if (gamepad1.right_bumper) {
                 // Arm Up, if the limit will not be passed
-                desiredArmPower = 1;
+                desiredArmPower = REGULAR_ARM_POWER_UP;
             } else if (gamepad1.right_trigger > 0) {
                 // Arm Down, if the limit will not be passed
-                desiredArmPower = -1;
+                desiredArmPower = REGULAR_ARM_POWER_DOWN;
             } else {
                 // Go by gamepad2 joystick
                 desiredArmPower = -gamepad2.left_stick_y;

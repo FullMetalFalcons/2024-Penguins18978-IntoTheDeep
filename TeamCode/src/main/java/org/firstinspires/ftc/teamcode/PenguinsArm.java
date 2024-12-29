@@ -182,6 +182,7 @@ public class PenguinsArm {
         // Encoder telemetry
         telemetry.addData("Arm Pos", Arm.getCurrentPosition());
         telemetry.addData("Slide Pos", Slide.getCurrentPosition());
+        telemetry.addData("Arm Velocity TickPerSec", Arm.getVelocity());
 
         getNewRobotLength(0,0);
         telemetry.addData("Arm Angle", armAngleDeg);
