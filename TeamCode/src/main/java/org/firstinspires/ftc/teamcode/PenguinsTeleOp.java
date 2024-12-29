@@ -1,19 +1,14 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.PoseVelocity2d;
-import com.acmerobotics.roadrunner.ftc.GoBildaPinpointDriverRR;
-
-import java.util.Locale;
 
 @TeleOp
 @Config
@@ -21,100 +16,54 @@ public class PenguinsTeleOp extends LinearOpMode {
     //Initialize motors, servos, sensors, imus, etc.
     DcMotorEx m1, m2, m3, m4, Arm, Slide, Hanger;
     Servo Claw;
-    public static MecanumDrive.Params DRIVE_PARAMS = new MecanumDrive.Params();
-    public static PinpointDrive.Params PINPOINT_PARAMS = new PinpointDrive.Params();
 
-    public PenguinsArm penguinsArm = null;
-
-    public static double arm_p = 5;
-    public static double arm_i = 0.05;
-    public static double arm_d = 0;
-
-    public static double slide_p = 5;
-    public static double slide_i = 0.05;
-    public static double slide_d = 0;
-
-    // Built-in PID loops for RUN_TO_POSITION
-    public PIDFCoefficients armPID = new PIDFCoefficients(arm_p, arm_i, arm_d, 0);
-    public PIDFCoefficients slidePID = new PIDFCoefficients(slide_p, slide_i, slide_d, 0);
-
-    public PenguinsArmPID.ArmSlideToPosition autoArmSlider = null;
-    public TelemetryPacketOpMode telemetryPacket = null;
-
-
+    // 'Public static' vars can be viewed and changed on the web dashboard
+    public static double REGULAR_ARM_POWER_UP = 1.0;
+    public static double REGULAR_ARM_POWER_DOWN = -1.0;
 
     // Custom Controls variables
     double virtualRightStickX = 0.0;
 
-
-    // Declare OpMode member for the Odometry Computer
-    GoBildaPinpointDriverRR odo;
+    // Set up constants for the size of the robot
+    public final double BOT_WIDTH = 18.0;
+    // Set up constants for "preset" field locations
+    public final double STARTING_POSITION_Y = -70.0 + (BOT_WIDTH /2);
+    public final double STARTING_POSITION_X = 9.0;
+    public final double STARTING_ANGLE_DEG = 90.0;
 
     public void runOpMode() {
-        penguinsArm = new PenguinsArmPID(hardwareMap, telemetry);
-        telemetryPacket = new TelemetryPacketOpMode(telemetry);
+        //This will send telemetry data to the web dashboard (192.168.43.1:8080/dash)
+        //  in addition to the driver station.
+        //  It also allows any 'public static' class attributes to be viewed and changed
+        //  on the dashboard as well
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+
+        PinpointDrive drive = new PinpointDrive(hardwareMap, STARTING_POSITION_X, STARTING_POSITION_Y, STARTING_ANGLE_DEG);
+        PenguinsArm penguinsArm = new PenguinsArm(hardwareMap, telemetry);
+        TelemetryPacketOpMode telemetryPacket = new TelemetryPacketOpMode(telemetry);
 
         //Define those motors and stuff
         //The string should be the name on the Driver Hub
-        m1 = (DcMotorEx) hardwareMap.dcMotor.get(DRIVE_PARAMS.leftFrontDriveName);
-        m2 = (DcMotorEx) hardwareMap.dcMotor.get(DRIVE_PARAMS.rightFrontDriveName);
-        m3 = (DcMotorEx) hardwareMap.dcMotor.get(DRIVE_PARAMS.leftBackDriveName);
-        m4 = (DcMotorEx) hardwareMap.dcMotor.get(DRIVE_PARAMS.rightBackDriveName);
-        Arm = (DcMotorEx) hardwareMap.dcMotor.get(DRIVE_PARAMS.armName);
-        Slide = (DcMotorEx) hardwareMap.dcMotor.get(DRIVE_PARAMS.slideName);
-        Hanger = (DcMotorEx) hardwareMap.dcMotor.get("linearActuator");
+        m1 = drive.leftFront;
+        m2 = drive.rightFront;
+        m3 = drive.leftBack;
+        m4 = drive.rightBack;;
 
-        Claw = (Servo) hardwareMap.servo.get("claw");
+        Arm = penguinsArm.Arm;;
+        Slide = penguinsArm.Slide;
+        Claw = penguinsArm.Claw;
+        Hanger = penguinsArm.Hanger;
 
-        //Set them to the correct modes
-        //This reverses the motor direction
-        m1.setDirection(DRIVE_PARAMS.leftFrontDriveDirection);
-        m2.setDirection(DRIVE_PARAMS.rightFrontDriveDirection);
-        m3.setDirection(DRIVE_PARAMS.leftBackDriveDirection);
-        m4.setDirection(DRIVE_PARAMS.rightBackDriveDirection);
-
-        Slide.setDirection(DRIVE_PARAMS.slideDirection);
-        Hanger.setDirection(DRIVE_PARAMS.slideDirection);
-
-
-        //This resets the encoder values when the code is initialized
-        m1.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        m2.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        m3.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        m4.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-
-        Hanger.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        Slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        Arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        //This makes the wheels tense up and stay in position when it is not moving, opposite is FLOAT
-        m1.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        m2.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        m3.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        m4.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-
-        Arm.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        Slide.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        Hanger.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
+        // TODO: Figure out if this can be removed or should be added to MecanumDrive
         //This lets you look at encoder values while the OpMode is active
         //If you have a STOP_AND_RESET_ENCODER, make sure to put this below it
-        m1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        m2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        m3.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        m4.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //m1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //m2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //m3.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //m4.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        Hanger.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        Slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        Arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-
-        // Pinpoint computer setup
-        odo = hardwareMap.get(GoBildaPinpointDriverRR.class, PINPOINT_PARAMS.pinpointDeviceName);
-        odo.setOffsets(DistanceUnit.MM.fromInches(PINPOINT_PARAMS.xOffset), DistanceUnit.MM.fromInches(PINPOINT_PARAMS.yOffset));
-        odo.setEncoderResolution(PINPOINT_PARAMS.encoderResolution);
-        odo.setEncoderDirections(PINPOINT_PARAMS.xDirection, PINPOINT_PARAMS.yDirection);
-        odo.resetPosAndIMU();
+        //This is to keep track of the current (if any) auto arm slide Action in progress
+        PenguinsArm.ArmSlideToPosition autoArmSlider = null;
 
         waitForStart();
 
@@ -161,19 +110,14 @@ public class PenguinsTeleOp extends LinearOpMode {
             m3.setPower(p3);
             m4.setPower(p4);
 
-
-
-
-
-
             // Arm Input Code
             double desiredArmPower = 0.0;
             if (gamepad1.right_bumper) {
                 // Arm Up, if the limit will not be passed
-                desiredArmPower = 1;
+                desiredArmPower = REGULAR_ARM_POWER_UP;
             } else if (gamepad1.right_trigger > 0) {
                 // Arm Down, if the limit will not be passed
-                desiredArmPower = -1;
+                desiredArmPower = REGULAR_ARM_POWER_DOWN;
             } else {
                 // Go by gamepad2 joystick
                 desiredArmPower = -gamepad2.left_stick_y;
@@ -250,42 +194,18 @@ public class PenguinsTeleOp extends LinearOpMode {
             // EMERGENCY encoder reset sequence
             if ((gamepad1.start && gamepad1.back) || (gamepad2.start && gamepad2.back)) {
                 // In case of "emergency," reset all encoders
-                Slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                Arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-                Slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                Arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                penguinsArm.resetArmEncoder();
+                penguinsArm.resetSlideEncoder();
+                penguinsArm.resetHangerEncoder();
 
                 telemetry.addLine("Reset encoders");
             }
 
-
-
-            odo.update();
-
-            // gets the current Position (x & y in inches, and heading in degrees) of the robot, and prints it.
-            Pose2d pos = odo.getPositionRR();
-            String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.position.x, pos.position.y, Math.toDegrees(pos.heading.toDouble()));
-            telemetry.addData("Position", data);
-
-            // gets the current Velocity (x & y in inches/sec and heading in degrees/sec) and prints it.
-            PoseVelocity2d vel = odo.getVelocityRR();
-            String velocity = String.format(Locale.US,"{XVel: %.3f, YVel: %.3f, HVel: %.3f}", vel.linearVel.x, vel.linearVel.y, Math.toDegrees(vel.angVel));
-            telemetry.addData("Velocity", velocity);
-            telemetry.addData("Pinpoint Frequency", odo.getFrequency()); //prints/gets the current refresh rate of the Pinpoint
-
-            /*
-            Gets the Pinpoint device status. Pinpoint can reflect a few states. But we'll primarily see
-            READY: the device is working as normal
-            CALIBRATING: the device is calibrating and outputs are put on hold
-            NOT_READY: the device is resetting from scratch. This should only happen after a power-cycle
-            FAULT_NO_PODS_DETECTED - the device does not detect any pods plugged in
-            FAULT_X_POD_NOT_DETECTED - The device does not detect an X pod plugged in
-            FAULT_Y_POD_NOT_DETECTED - The device does not detect a Y pod plugged in
-            */
-            telemetry.addData("Status", odo.getDeviceStatus());
-
+            // Have each module add debug data to the telemetry object so it can be sent to the
+            // driver's station
+            drive.addDebugData(telemetry);
             penguinsArm.addDebugData();
+
             telemetry.update();
 
         } // opModeActive loop ends

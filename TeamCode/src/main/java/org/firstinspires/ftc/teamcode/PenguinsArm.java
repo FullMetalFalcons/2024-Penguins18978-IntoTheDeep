@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -13,7 +14,22 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class PenguinsArm {
-    public static MecanumDrive.Params DRIVE_PARAMS = new MecanumDrive.Params();
+    public static class Params {
+        // accesory motors setup
+        public String armName = "arm";
+        public DcMotorSimple.Direction armDirection = DcMotorSimple.Direction.FORWARD;
+
+        public String slideName = "slide";
+        public  DcMotorSimple.Direction slideDirection = DcMotorSimple.Direction.REVERSE;
+
+        public String hangerName = "linearActuator";
+        public  DcMotorSimple.Direction hangerDirection = DcMotorSimple.Direction.REVERSE;
+
+        public String clawName = "claw";
+    }
+
+
+    public static Params ARM_PARAMS = new Params();
     private Telemetry telemetry;
 
     // Known Slide/Arm/Claw positions
@@ -64,27 +80,52 @@ public class PenguinsArm {
     public DcMotorEx Arm;
     public DcMotorEx Slide;
     public Servo Claw;
+    public DcMotorEx Hanger;
+
     public PenguinsArm(HardwareMap hardwareMap, Telemetry telemetry1) {
         // Set up motors using MecanumDrive constants
-        Arm = hardwareMap.get(DcMotorEx.class, DRIVE_PARAMS.armName);
-        Arm.setDirection(DRIVE_PARAMS.armDirection);
+        Arm = hardwareMap.get(DcMotorEx.class, ARM_PARAMS.armName);
+        Arm.setDirection(ARM_PARAMS.armDirection);
 
-        Slide = hardwareMap.get(DcMotorEx.class, DRIVE_PARAMS.slideName);
-        Slide.setDirection(DRIVE_PARAMS.slideDirection);
+        Slide = hardwareMap.get(DcMotorEx.class, ARM_PARAMS.slideName);
+        Slide.setDirection(ARM_PARAMS.slideDirection);
 
-        Claw = hardwareMap.get(Servo.class, DRIVE_PARAMS.clawName);
+        Claw = hardwareMap.get(Servo.class, ARM_PARAMS.clawName);
+
+        Hanger = hardwareMap.get(DcMotorEx.class, ARM_PARAMS.hangerName);
+        Hanger.setDirection(ARM_PARAMS.hangerDirection);
 
         // The arm will hold its position when given 0.0 power
         Arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         Slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        // Reset the arm's encoder position
-        Arm.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        Slide.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        Hanger.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        // Reset the encoder positions
+        resetArmEncoder();
+        resetSlideEncoder();
+        resetHangerEncoder();
 
         // Allow the class to send data to telemetry
         telemetry = telemetry1;
     }
 
+    public void resetArmEncoder(){
+        // Reset the arm's encoder position
+        Arm.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        Arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
+    public void resetSlideEncoder() {
+        // Reset the slider's encoder position
+        Slide.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        Slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
+    public void resetHangerEncoder() {
+        // Reset the hanger's encoder position
+        Hanger.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        Hanger.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
 
     // Method to check whether the robot will still be within size constraints after the desired movements
     public boolean getNewRobotLength(double deltaLengthInInches, double deltaAngleDeg) {
@@ -141,6 +182,7 @@ public class PenguinsArm {
         // Encoder telemetry
         telemetry.addData("Arm Pos", Arm.getCurrentPosition());
         telemetry.addData("Slide Pos", Slide.getCurrentPosition());
+        telemetry.addData("Arm Velocity TickPerSec", Arm.getVelocity());
 
         getNewRobotLength(0,0);
         telemetry.addData("Arm Angle", armAngleDeg);
