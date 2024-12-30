@@ -19,7 +19,9 @@ public class PenguinsTeleOp extends LinearOpMode {
 
     // 'Public static' vars can be viewed and changed on the web dashboard
     public static double REGULAR_ARM_POWER_UP = 1.0;
+    public static double REGULAR_ARM_VELOCITY_UP_TICKS_PER_SEC = 1000;
     public static double REGULAR_ARM_POWER_DOWN = -1.0;
+    public static double REGULAR_ARM_VELOCITY_DOWN_TICKS_PER_SEC = -1000;
 
     // Custom Controls variables
     double virtualRightStickX = 0.0;
@@ -30,6 +32,8 @@ public class PenguinsTeleOp extends LinearOpMode {
     public final double STARTING_POSITION_Y = -70.0 + (BOT_WIDTH /2);
     public final double STARTING_POSITION_X = 9.0;
     public final double STARTING_ANGLE_DEG = 90.0;
+
+    public static PenguinsArm.Params ARM_PARAMS = new PenguinsArm.Params();
 
     public void runOpMode() {
         //This will send telemetry data to the web dashboard (192.168.43.1:8080/dash)
@@ -111,16 +115,16 @@ public class PenguinsTeleOp extends LinearOpMode {
             m4.setPower(p4);
 
             // Arm Input Code
-            double desiredArmPower = 0.0;
+            double desiredArmVelocityTicksPerSec = 0.0;
             if (gamepad1.right_bumper) {
                 // Arm Up, if the limit will not be passed
-                desiredArmPower = REGULAR_ARM_POWER_UP;
+                desiredArmVelocityTicksPerSec = REGULAR_ARM_VELOCITY_UP_TICKS_PER_SEC;
             } else if (gamepad1.right_trigger > 0) {
                 // Arm Down, if the limit will not be passed
-                desiredArmPower = REGULAR_ARM_POWER_DOWN;
+                desiredArmVelocityTicksPerSec = REGULAR_ARM_VELOCITY_DOWN_TICKS_PER_SEC;
             } else {
                 // Go by gamepad2 joystick
-                desiredArmPower = -gamepad2.left_stick_y;
+                desiredArmVelocityTicksPerSec = -gamepad2.left_stick_y;
             }
 
             // Slide Input Code
@@ -145,13 +149,13 @@ public class PenguinsTeleOp extends LinearOpMode {
                 autoArmSlider = penguinsArm.armToPosition(penguinsArm.ARM_SPECIMEN_READY_DEGREES, penguinsArm.SLIDE_SPECIMEN_READY_INCHES);
             }
 
-            if (desiredArmPower != 0 || desiredSlidePower != 0) {
+            if (desiredArmVelocityTicksPerSec != 0 || desiredSlidePower != 0) {
                 autoArmSlider = null;  // Cancel any auto actions
             }
 
             if (autoArmSlider == null) {
                 // Set power based on manual inputs
-                penguinsArm.setArmPower(desiredArmPower);
+                penguinsArm.setArmVelocity(desiredArmVelocityTicksPerSec);
                 penguinsArm.setSlidePower(desiredSlidePower);
             } else {
                 // Run the auto action until it finishes

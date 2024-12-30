@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.arcrobotics.ftclib.controller.wpilibcontroller.ArmFeedforward;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -26,6 +27,10 @@ public class PenguinsArm {
         public  DcMotorSimple.Direction hangerDirection = DcMotorSimple.Direction.REVERSE;
 
         public String clawName = "claw";
+
+        public double ARM_FEEDFORWARD_KS = 0.02;  //Min power to move arm at 90 deg
+        public double ARM_FEEDFORWARD_KCOS = 0.4; //Power to combat gravity at 0 deg
+        public double ARM_FEEDFORWARD_KV = 0.0004; //Power per tick/sec (slope)
     }
 
 
@@ -76,6 +81,8 @@ public class PenguinsArm {
     final double ABSOLUTE_DELTA_LENGTH_INCHES = 3.0;
     final double ABSOLUTE_DELTA_ANGLE_DEGREES = 7.0;
 
+    protected ArmFeedforward armFeedforward = null;
+
 
     public DcMotorEx Arm;
     public DcMotorEx Slide;
@@ -107,6 +114,10 @@ public class PenguinsArm {
 
         // Allow the class to send data to telemetry
         telemetry = telemetry1;
+
+        // Class to calculate the power needed to run the arm at a certain speed
+        // taking into account things like gravity based on the angle
+        armFeedforward = new ArmFeedforward(ARM_PARAMS.ARM_FEEDFORWARD_KS, ARM_PARAMS.ARM_FEEDFORWARD_KCOS, ARM_PARAMS.ARM_FEEDFORWARD_KV);
     }
 
     public void resetArmEncoder(){
@@ -152,6 +163,29 @@ public class PenguinsArm {
         }
     }
 
+    public void setArmVelocity(double desiredVelocityTicksPerSec) {
+        Arm.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
+        if(desiredVelocityTicksPerSec != 0){
+            // Class to calculate the power needed to run the arm at a certain speed
+            // taking into account things like gravity based on the angle
+            armFeedforward = new ArmFeedforward(ARM_PARAMS.ARM_FEEDFORWARD_KS, ARM_PARAMS.ARM_FEEDFORWARD_KCOS, ARM_PARAMS.ARM_FEEDFORWARD_KV);
+
+            //Get the desired power based on the desired velocity and arm position
+            armAngleDeg = (Arm.getCurrentPosition() + INITIAL_ARM_ENCODER) * DEGREES_PER_ARM_TICK;
+            double desiredPower = armFeedforward.calculate(Math.toRadians(armAngleDeg), desiredVelocityTicksPerSec);
+            telemetry.addData("Arm FF Power", desiredPower);
+
+
+            if (getNewRobotLength(0.0, ABSOLUTE_DELTA_ANGLE_DEGREES * desiredPower)) {
+                Arm.setPower(desiredPower);
+            } else {
+                Arm.setPower(0.0);
+            }
+        }else{
+            Arm.setPower(0.0);
+        }
+    }
 
     public void setArmPower(double desiredPower) {
         Arm.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
