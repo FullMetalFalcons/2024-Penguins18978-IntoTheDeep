@@ -23,6 +23,10 @@ public class PenguinsTeleOp extends LinearOpMode {
     public static double REGULAR_ARM_POWER_DOWN = -1.0;
     public static double REGULAR_ARM_VELOCITY_DOWN_TICKS_PER_SEC = -1000;
 
+    //These can be added to the dasboard graph to keep the scale consistent
+    public static double DASH_GRAPH_MAX = 1400;
+    public static double DASH_GRAPH_MIN = -1400;
+
     // Custom Controls variables
     double virtualRightStickX = 0.0;
 
@@ -33,7 +37,8 @@ public class PenguinsTeleOp extends LinearOpMode {
     public final double STARTING_POSITION_X = 9.0;
     public final double STARTING_ANGLE_DEG = 90.0;
 
-    public static PenguinsArm.Params ARM_PARAMS = new PenguinsArm.Params();
+    public static PenguinsArmPID.Params ARM_PARAMS = PenguinsArmPID.ARM_PARAMS;
+    public static PenguinsArmPID.PIDFParams PIDF_PARAMS = PenguinsArmPID.PIDF_PARAMS;
 
     public void runOpMode() {
         //This will send telemetry data to the web dashboard (192.168.43.1:8080/dash)
@@ -43,7 +48,7 @@ public class PenguinsTeleOp extends LinearOpMode {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         PinpointDrive drive = new PinpointDrive(hardwareMap, STARTING_POSITION_X, STARTING_POSITION_Y, STARTING_ANGLE_DEG);
-        PenguinsArm penguinsArm = new PenguinsArm(hardwareMap, telemetry);
+        PenguinsArmPID penguinsArm = new PenguinsArmPID(hardwareMap, telemetry);
         TelemetryPacketOpMode telemetryPacket = new TelemetryPacketOpMode(telemetry);
 
         //Define those motors and stuff
@@ -210,6 +215,10 @@ public class PenguinsTeleOp extends LinearOpMode {
             drive.addDebugData(telemetry);
             penguinsArm.addDebugData();
 
+            telemetry.addData("DASH_MAX", DASH_GRAPH_MAX);
+            telemetry.addData("DASH_MIN", DASH_GRAPH_MIN);
+
+            //Send the latest telemetry info to the driver station
             telemetry.update();
 
         } // opModeActive loop ends

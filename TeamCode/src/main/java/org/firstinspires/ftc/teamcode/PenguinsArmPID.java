@@ -10,8 +10,40 @@ import com.arcrobotics.ftclib.controller.PIDController;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class PenguinsArmPID extends PenguinsArm{
-    protected PIDController armPidController = new PIDController(0,0,0);
-    protected PIDController slidePidController = new PIDController(0,0,0);
+    protected FalconsPIDFController armPidController = new FalconsPIDFController(0,0,0,0, telemetry);
+    protected FalconsPIDFController slidePidController = new FalconsPIDFController(0,0,0,0, telemetry);
+
+    /** When setting the motor's velocity, which method should be used:
+     */
+    enum ArmPidMode{
+        /** Use the built in DcMotorEx.runToPosition function in the base class
+         */
+        RUN_TO_POSITION_EC_MOTOR,
+        /** Use the custom FalconsArmPID class
+         */
+        FALCONS_PID
+    }
+
+    public static class PIDFParams {
+        //Arm max speed is about 2000 ticks/sec, it doesn't do too well under 200
+        //  so a P of 10 will
+        //     run at full speed till within 200 (~3.5dec)
+        //     run at speed of 50 at the tolerance (too low)
+        double arm_p = 10;
+        double arm_i = 0;
+        double arm_d = 0;
+        double arm_f = 0;
+        double arm_tolerance = 5;
+
+        double slide_p = 0;
+        double slide_i = 0;
+        double slide_d = 0;
+        double slide_f = 0;
+        double slide_tolerance = 5;
+
+        ArmPidMode armPidMode = ArmPidMode.FALCONS_PID;
+    }
+    public static PIDFParams PIDF_PARAMS = new PIDFParams();
 
     public PenguinsArmPID(HardwareMap hardwareMap, Telemetry telemetry1) {
         super(hardwareMap, telemetry1);
@@ -36,12 +68,18 @@ public class PenguinsArmPID extends PenguinsArm{
 
                 initialized = true;
             }
+            armPidController.setPIDF(PIDF_PARAMS.arm_p, PIDF_PARAMS.arm_i, PIDF_PARAMS.arm_d, PIDF_PARAMS.arm_f);
+            armPidController.setTolerance(PIDF_PARAMS.arm_tolerance);
+
+            slidePidController.setPIDF(PIDF_PARAMS.slide_p, PIDF_PARAMS.slide_i, PIDF_PARAMS.slide_d, PIDF_PARAMS.slide_f);
+            slidePidController.setTolerance(PIDF_PARAMS.slide_tolerance);
+
             packet.put("Target Arm Position", targetArmPositionTicks);
             packet.put("Actual Arm Position", Arm.getTargetPosition());
-            packet.put("Arm isBusy", Arm.isBusy());
+            packet.put("Arm atSetPoint", armPidController.atSetPoint());
             packet.put("Target Slide Position", targetSlidePositionTicks);
             packet.put("Actual Slide Position", Slide.getTargetPosition());
-            packet.put("Slide isBusy", Slide.isBusy());
+            packet.put("Slide atSetPoint", slidePidController.atSetPoint());
 
             /*
              * The loop checks to see if the controller has reached
@@ -50,7 +88,7 @@ public class PenguinsArmPID extends PenguinsArm{
              */
             double armOutputV = armPidController.calculate(
                     Arm.getCurrentPosition());  // the measured value
-            Arm.setVelocity(armOutputV);
+            setArmVelocity(armOutputV);
 
             double slideOutpuV = armPidController.calculate(
                     Slide.getCurrentPosition());  // the measured value
@@ -58,7 +96,7 @@ public class PenguinsArmPID extends PenguinsArm{
 
             if (armPidController.atSetPoint()) {
                 //We are at the target, return isBusy = false (i.e. we are done)
-                Arm.setVelocity(0); // TODO: Is this needed or will it be 0 from above?
+                setArmVelocity(0); // TODO: Is this needed or will it be 0 from above?
             }
 
             if (slidePidController.atSetPoint()) {
@@ -70,6 +108,10 @@ public class PenguinsArmPID extends PenguinsArm{
         }
     }
     public ArmSlideToPosition armToPosition(double targetArmDegrees, double targetSlideInches) {
-        return new ArmSlideToPositionPID(targetArmDegrees, targetSlideInches);
+        if (PIDF_PARAMS.armPidMode == ArmPidMode.FALCONS_PID){
+            return new ArmSlideToPositionPID(targetArmDegrees, targetSlideInches);
+        }else{
+            return new ArmSlideToPosition(targetArmDegrees, targetSlideInches);
+        }
     }
 }
