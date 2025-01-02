@@ -123,15 +123,18 @@ public class PenguinsTeleOp extends LinearOpMode {
 
             // Arm Input Code
             double desiredArmVelocityTicksPerSec = 0.0;
+            double desiredArmPower = 0.0;
             if (gamepad1.right_bumper) {
                 // Arm Up, if the limit will not be passed
                 desiredArmVelocityTicksPerSec = REGULAR_ARM_VELOCITY_UP_TICKS_PER_SEC;
+                desiredArmPower = REGULAR_ARM_POWER_UP;
             } else if (gamepad1.right_trigger > 0) {
                 // Arm Down, if the limit will not be passed
                 desiredArmVelocityTicksPerSec = REGULAR_ARM_VELOCITY_DOWN_TICKS_PER_SEC;
+                desiredArmPower = REGULAR_ARM_POWER_DOWN;
             } else {
                 // Go by gamepad2 joystick
-                desiredArmVelocityTicksPerSec = -gamepad2.left_stick_y;
+                desiredArmPower = -gamepad2.left_stick_y;
             }
 
             // Slide Input Code
@@ -154,6 +157,10 @@ public class PenguinsTeleOp extends LinearOpMode {
                 autoArmSlider = penguinsArm.armToPosition(penguinsArm.ARM_RESET_DEGREES, penguinsArm.SLIDE_RESET_INCHES);
             } else if (gamepad2.dpad_up && autoArmSlider == null) {
                 autoArmSlider = penguinsArm.armToPosition(penguinsArm.ARM_SPECIMEN_READY_DEGREES, penguinsArm.SLIDE_SPECIMEN_READY_INCHES);
+            } else if (gamepad2.dpad_left && autoArmSlider == null){
+                autoArmSlider = penguinsArm.armToPosition(penguinsArm.ARM_SPECIMEN_SCORE_DEGREES, penguinsArm.SLIDE_SPECIMEN_READY_INCHES);
+            } else if (gamepad2.dpad_right && autoArmSlider == null){
+                autoArmSlider = penguinsArm.armToPosition(penguinsArm.ARM_SPECIMEN_SCORE_DEGREES, penguinsArm.SLIDE_SPECIMEN_SCORE_INCHES);
             }
 
             if (desiredArmVelocityTicksPerSec != 0 || desiredSlidePower != 0) {
@@ -162,7 +169,8 @@ public class PenguinsTeleOp extends LinearOpMode {
 
             if (autoArmSlider == null) {
                 // Set power based on manual inputs
-                penguinsArm.setArmVelocity(desiredArmVelocityTicksPerSec);
+                //penguinsArm.setArmVelocity(desiredArmVelocityTicksPerSec);
+                penguinsArm.setArmPower(desiredArmPower);
                 penguinsArm.setSlidePower(desiredSlidePower);
             } else {
                 // Run the auto action until it finishes
