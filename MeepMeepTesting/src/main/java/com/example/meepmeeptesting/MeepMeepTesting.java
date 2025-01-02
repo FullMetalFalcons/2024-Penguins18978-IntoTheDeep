@@ -6,6 +6,7 @@ import com.noahbres.meepmeep.MeepMeep;
 import com.noahbres.meepmeep.roadrunner.DefaultBotBuilder;
 import com.noahbres.meepmeep.roadrunner.entity.RoadRunnerBotEntity;
 
+
 public class MeepMeepTesting {
     public static void main(String[] args) {
         MeepMeep meepMeep = new MeepMeep(800);
@@ -37,16 +38,38 @@ public class MeepMeepTesting {
         // Set starting pose and run a sample trajectory (the +0's are use to make the parameter names appear)
         myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(STARTING_POSITION_X, STARTING_POSITION_Y, Math.toRadians(90)))
                 .waitSeconds(0.5)
+                // Move into Scoring Position
                 .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X, SCORING_POSITION_Y ), Math.toRadians(90))
                 // Pause to score specimen
-                .waitSeconds(10)
+                .waitSeconds(4)
+                // Move to push a sample into the Observation Zone
+                .splineToLinearHeading(new Pose2d(PICKUP_POSITION_X-10, PICKUP_POSITION_Y+20, Math.toRadians(90)), 0)
+                .splineToLinearHeading(new Pose2d(PICKUP_POSITION_X, PICKUP_POSITION_Y+50, Math.toRadians(90)), 0)
+                .strafeTo(new Vector2d(PICKUP_POSITION_X+8, PICKUP_POSITION_Y+50))
+                // Move straight down to push the sample
+                .strafeTo(new Vector2d(PICKUP_POSITION_X+8, PICKUP_POSITION_Y+5))
+                // Move out of the Zone and then back to Pickup Position
+                //.splineToConstantHeading(new Vector2d( PICKUP_POSITION_X-10, PICKUP_POSITION_Y+20), Math.toRadians(180))
+                //.strafeToLinearHeading(new Vector2d( PICKUP_POSITION_X-15, PICKUP_POSITION_Y+20), Math.toRadians(0))
+                .strafeTo(new Vector2d(PICKUP_POSITION_X+8, PICKUP_POSITION_Y+10))
+                .strafeTo(new Vector2d(PICKUP_POSITION_X-20, PICKUP_POSITION_Y+10))
+                .waitSeconds(1)
                 .splineToLinearHeading(new Pose2d( PICKUP_POSITION_X, PICKUP_POSITION_Y, 0), 0)
                 // Pause to grab specimen
                 .waitSeconds(1)
-                .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X, SCORING_POSITION_Y ), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X-6, SCORING_POSITION_Y ), Math.toRadians(90))
                 // Pause to score specimen
-                .waitSeconds(10)
-                .splineToLinearHeading(new Pose2d( PARKING_POSITION_X, PARKING_POSITION_Y, Math.toRadians(180)), 0)
+                .waitSeconds(4)
+                // Move back to grab a second specimen
+                .strafeToLinearHeading(new Vector2d( PICKUP_POSITION_X, PICKUP_POSITION_Y), 0)
+                // Pause to grab specimen
+                .waitSeconds(1)
+                .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X-12, SCORING_POSITION_Y ), Math.toRadians(90))
+                // Pause to score specimen
+                .waitSeconds(4)
+                .turn(Math.toRadians(1))
+                // Move to park
+                //.splineToLinearHeading(new Pose2d( PARKING_POSITION_X, PARKING_POSITION_Y, Math.toRadians(180)), 0)
                 .build());
 
 
