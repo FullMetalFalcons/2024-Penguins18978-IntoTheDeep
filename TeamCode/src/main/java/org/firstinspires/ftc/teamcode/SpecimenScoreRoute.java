@@ -15,26 +15,26 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 @Config
 @Autonomous
 public class SpecimenScoreRoute extends LinearOpMode {
+    // Set up constants for the size of the robot
+    static int botWidth = 18;
+
+    // Set up constants for "preset" field locations
+    static int STARTING_POSITION_Y = -70 + (botWidth/2);
+    static int STARTING_POSITION_X = 9;
+
+    static int SCORING_POSITION_X = STARTING_POSITION_X;
+    static int SCORING_POSITION_Y = STARTING_POSITION_Y + 12;
+
+    static int PICKUP_POSITION_X = 40;
+    static int PICKUP_POSITION_Y = STARTING_POSITION_Y + 3;
+
+    static int PARKING_POSITION_X = 48;
+    static int PARKING_POSITION_Y = PICKUP_POSITION_Y;
+
     public void runOpMode() {
-        // Set up constants for the size of the robot
-        int botWidth = 18;
-
-        // Set up constants for "preset" field locations
-        int STARTING_POSITION_Y = -70 + (botWidth/2);
-        int STARTING_POSITION_X = 9;
-
-        int SCORING_POSITION_X = STARTING_POSITION_X;
-        int SCORING_POSITION_Y = STARTING_POSITION_Y + 12;
-
-        int PICKUP_POSITION_X = 40;
-        int PICKUP_POSITION_Y = STARTING_POSITION_Y + 3;
-
-        int PARKING_POSITION_X = 48;
-        int PARKING_POSITION_Y = PICKUP_POSITION_Y;
-
 
         PinpointDrive drive = new PinpointDrive(hardwareMap, new Pose2d(STARTING_POSITION_X, STARTING_POSITION_Y, Math.toRadians(90)));
-        PenguinsArm arm = new PenguinsArm(hardwareMap, telemetry);
+        PenguinsArm arm = new PenguinsArmPID(hardwareMap, telemetry);
 
         // Close the claw on initialization
         arm.setClawPosition(arm.CLAW_CLOSED);
