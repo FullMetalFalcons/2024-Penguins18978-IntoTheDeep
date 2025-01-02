@@ -51,7 +51,7 @@ public class PenguinsArm {
 
         //This is used when deciding if the arm could exceed the robot length limit.  It's the max
         //  amount of time the arm could run before checking the length again
-        public double TIME_MOTOR_CAN_RUN_BETWEEN_LOOPS_SEC = 0.5;
+        public double TIME_MOTOR_CAN_RUN_BETWEEN_LOOPS_SEC = 0.1;
     }
 
 
@@ -228,6 +228,7 @@ public class PenguinsArm {
             Arm.setPower(0.0);
         }
 
+        telemetry.addData("ArmCanMove", canArmMove);
         prevArmVelocity_ticksPerSec = currArmVelocity;
     }
 
