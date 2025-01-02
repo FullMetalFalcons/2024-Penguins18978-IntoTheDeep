@@ -72,12 +72,17 @@ public class PenguinsArmPID extends PenguinsArm{
             slidePidController.setPIDF(PIDF_PARAMS.slide_p, PIDF_PARAMS.slide_i, PIDF_PARAMS.slide_d, PIDF_PARAMS.slide_f);
             slidePidController.setTolerance(PIDF_PARAMS.slide_tolerance);
 
+            //Technically being at the set point can change as the arm bounces
+            //  so read it once per loop to be consistent
+            boolean armAtSetPoint = armPidController.atSetPoint();
+            boolean slideAtSetPoint = slidePidController.atSetPoint();
+
             /*
              * The loop checks to see if the controller has reached
              * the desired setpoint within a specified tolerance
              * range
              */
-            if (armPidController.atSetPoint()) {
+            if (armAtSetPoint) {
                 //We are at the target, return isBusy = false (i.e. we are done)
                 setArmVelocity(0); // TODO: Is this needed or will it be 0 from above?
             }else{
@@ -86,7 +91,7 @@ public class PenguinsArmPID extends PenguinsArm{
                 setArmVelocity(armOutputV);
             }
 
-            if (slidePidController.atSetPoint()) {
+            if (slideAtSetPoint) {
                 Slide.setVelocity(0); // TODO: Is this needed or will it be 0 from above?
             }else{
                 double slideOutpuV = slidePidController.calculate(
@@ -96,13 +101,13 @@ public class PenguinsArmPID extends PenguinsArm{
 
             packet.put("Target Arm Position", targetArmPositionTicks);
             packet.put("Actual Arm Position", Arm.getCurrentPosition());
-            packet.put("Arm atSetPoint", armPidController.atSetPoint());
+            packet.put("Arm atSetPoint", armAtSetPoint);
             packet.put("Target Slide Position", targetSlidePositionTicks);
             packet.put("Actual Slide Position", Slide.getCurrentPosition());
-            packet.put("Slide atSetPoint", slidePidController.atSetPoint());
+            packet.put("Slide atSetPoint", slideAtSetPoint);
 
             //Return true if we are still busy (which is if either PID is not at the set point)
-            return (!armPidController.atSetPoint() || !slidePidController.atSetPoint());
+            return (!armAtSetPoint || !slideAtSetPoint);
         }
     }
     public ArmSlideToPosition armToPosition(double targetArmDegrees, double targetSlideInches) {
