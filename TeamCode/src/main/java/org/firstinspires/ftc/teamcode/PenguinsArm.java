@@ -18,7 +18,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 public class PenguinsArm {
     /** When setting the motor's velocity, which method should be used:
      */
-    enum MotorVelocityMode{
+    public enum MotorVelocityMode{
         /** Use the built in DcMotorEx.setVelocity function
          */
         VELOCITY_EC_MOTOR,
@@ -191,6 +191,7 @@ public class PenguinsArm {
     public void setArmVelocity(double desiredVelocityTicksPerSec) {
         double currArmVelocity = Arm.getVelocity();
 
+        desiredVelocityTicksPerSec = Math.max(Math.min(desiredVelocityTicksPerSec, 2500), -2500);  //Limit result to a valid motor power
         // The max angle the arm could move in any loop is the max of the current speed
         //  and the desired speed and the max assumed loop time
         // TODO: Is this the right logic?
@@ -214,7 +215,7 @@ public class PenguinsArm {
 
                 double desiredPower = armFeedforward.calculateArmPower(armAngleDeg, desiredVelocityTicksPerSec, desiredAccel);
                 telemetry.addData("Arm FF Power", desiredPower);
-                telemetry.addData("Arm FF Scaled to Vel", desiredPower*Math.abs(desiredVelocityTicksPerSec));
+                telemetry.addData("Arm FF Scaled to 1000", desiredPower*1000);
 
                 // Set the motor power based on the power calculated from feedForward
                 Arm.setPower(desiredPower);

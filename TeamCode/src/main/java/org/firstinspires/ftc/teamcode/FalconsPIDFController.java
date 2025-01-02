@@ -36,13 +36,15 @@ public class FalconsPIDFController {
     private double period;
 
     private Telemetry telemetry;
+    private String instanceName;  //This is for debug statements
 
     /**
      * The base constructor for the PIDF controller
      */
-    public FalconsPIDFController(double kp, double ki, double kd, double kf, Telemetry telemetry) {
+    public FalconsPIDFController(double kp, double ki, double kd, double kf, Telemetry telemetry, String instanceName) {
         this(kp, ki, kd, kf, 0, 0);
         this.telemetry = telemetry;
+        this.instanceName = instanceName;
     }
 
     /**
@@ -224,14 +226,14 @@ public class FalconsPIDFController {
         double total_calc = kP_calc + kI_calc + kD_calc + kF_calc;
 
         if (telemetry != null){
-            telemetry.addData("pid_periodSec", period);
-            telemetry.addData("pid_errorValP", errorVal_p);
-            telemetry.addData("pid_errorValV", errorVal_v);
-            telemetry.addData("pid_kP_vel", kP_calc);
-            telemetry.addData("pid_kI_vel", kI_calc);
-            telemetry.addData("pid_kD_vel", kD_calc);
-            telemetry.addData("pid_kF_vel", kF_calc);
-            telemetry.addData("pid_total_vel", total_calc);
+            telemetry.addData(instanceName+"_pid_periodSec", period);
+            telemetry.addData(instanceName+"_pid_errorValP", errorVal_p);
+            telemetry.addData(instanceName+"_pid_errorValV", errorVal_v);
+            telemetry.addData(instanceName+"_pid_kP_vel", kP_calc);
+            telemetry.addData(instanceName+"_pid_kI_vel", kI_calc);
+            telemetry.addData(instanceName+"_pid_kD_vel", kD_calc);
+            telemetry.addData(instanceName+"_pid_kF_vel", kF_calc);
+            telemetry.addData(instanceName+"_pid_total_vel", total_calc);
         }
 
         return total_calc;

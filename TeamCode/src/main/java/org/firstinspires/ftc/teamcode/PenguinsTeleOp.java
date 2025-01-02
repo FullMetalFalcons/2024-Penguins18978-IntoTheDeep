@@ -49,7 +49,9 @@ public class PenguinsTeleOp extends LinearOpMode {
 
         PinpointDrive drive = new PinpointDrive(hardwareMap, STARTING_POSITION_X, STARTING_POSITION_Y, STARTING_ANGLE_DEG);
         PenguinsArmPID penguinsArm = new PenguinsArmPID(hardwareMap, telemetry);
+
         TelemetryPacketOpMode telemetryPacket = new TelemetryPacketOpMode(telemetry);
+
 
         //Define those motors and stuff
         //The string should be the name on the Driver Hub
@@ -217,6 +219,7 @@ public class PenguinsTeleOp extends LinearOpMode {
 
             telemetry.addData("DASH_MAX", DASH_GRAPH_MAX);
             telemetry.addData("DASH_MIN", DASH_GRAPH_MIN);
+            telemetry.addData("ARM_PID_MODE", PIDF_PARAMS.armPidMode);
 
             //Send the latest telemetry info to the driver station
             telemetry.update();
