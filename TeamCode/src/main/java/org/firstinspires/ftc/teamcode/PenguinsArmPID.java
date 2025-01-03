@@ -84,19 +84,19 @@ public class PenguinsArmPID extends PenguinsArm{
              */
             if (armAtSetPoint) {
                 //We are at the target, return isBusy = false (i.e. we are done)
-                setArmVelocity(0); // TODO: Is this needed or will it be 0 from above?
-            }else{
+                setArmVelocity(0);
+            } else {
                 double armOutputV = armPidController.calculate(
                         Arm.getCurrentPosition());  // the measured value
                 setArmVelocity(armOutputV);
             }
 
             if (slideAtSetPoint) {
-                Slide.setVelocity(0); // TODO: Is this needed or will it be 0 from above?
-            }else{
-                double slideOutpuV = slidePidController.calculate(
+                setSlideVelocity(0);
+            } else {
+                double slideOutputV = slidePidController.calculate(
                         Slide.getCurrentPosition());  // the measured value
-                Slide.setVelocity(slideOutpuV);
+                setSlideVelocity(slideOutputV);
             }
 
             packet.put("Target Arm Position", targetArmPositionTicks);

@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.firstinspires.ftc.teamcode.PenguinsArm.MotorVelocityMode.VELOCITY_FALCONS_FF;
-
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
@@ -16,17 +14,29 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class PenguinsArm {
-    /** When setting the motor's velocity, which method should be used:
-     */
-    public enum MotorVelocityMode{
-        /** Use the built in DcMotorEx.setVelocity function
-         */
-        VELOCITY_EC_MOTOR,
-        /** Use the custom FalconsFeedFoward class
-         */
-        VELOCITY_FALCONS_FF
-    }
 
+    public static class FeedforwardGains{
+        double ks = 0;
+        double kgravity = 0;
+        double kv = 0;
+        double ka = 0;
+        double timeToAccelerate = 0;
+
+        /**
+          * @param ks   Min power needed to move the arm without gravity
+         * @param kgravity   Min power needed to move the arm with full gravity
+         * @param kv   Power per tick/sec (slope)
+         * @param ka   Power per tick/sec per sec
+         * @param timeToAccelerate   Time to get to the desired velocity (for acceleration)
+         */
+        public FeedforwardGains(double ks, double kgravity, double kv, double ka, double timeToAccelerate){
+            this.ks = ks;
+            this.kgravity = kgravity;
+            this.kv = kv;
+            this.ka = ka;
+            this.timeToAccelerate = timeToAccelerate;
+        }
+    }
     public static class Params {
         // accesory motors setup
         public String armName = "arm";
@@ -40,14 +50,8 @@ public class PenguinsArm {
 
         public String clawName = "claw";
 
-        //When calling the setVelocity() methods, this tells which velocity mode to use
-        public MotorVelocityMode armVelocityMode = VELOCITY_FALCONS_FF;
-
-        public double ARM_FEEDFORWARD_KS = 0.02;   //Min power to move arm at 90 deg
-        public double ARM_FEEDFORWARD_KCOS = 0.0;  //Power to combat gravity at 0 deg
-        public double ARM_FEEDFORWARD_KV = 0.0004; //Power per tick/sec (slope)
-        public double ARM_FEEDFORWARD_KA = 0.00007;      //Power per tick/sec per sec
-        public double ARM_TIME_TO_ACCEL_SEC = 0.25;  //Time to get to the desired velocity (for accel)
+        public FeedforwardGains armGains = new FeedforwardGains(0.02, 0.0, 0.0004, 0.00007, 0.25);
+        public FeedforwardGains slideGains = new FeedforwardGains(0.02, 0.0, 0.0004, 0.00007, 0.25);
 
         //This is used when deciding if the arm could exceed the robot length limit.  It's the max
         //  amount of time the arm could run before checking the length again
@@ -59,8 +63,6 @@ public class PenguinsArm {
     protected Telemetry telemetry;
 
     // Known Slide/Arm/Claw positions
-    public final double HOLD_POSITION = -10;
-
     public final double ARM_RESET_DEGREES = 11;
     public final double SLIDE_RESET_INCHES = 0;
 
@@ -103,9 +105,7 @@ public class PenguinsArm {
     final double ABSOLUTE_DELTA_ANGLE_DEGREES = 7.0;
 
     protected FalconsArmFeedforward armFeedforward = null;
-
-    // Keep the previous arm velocity so we can smooth out the velocity over the past two loops
-    protected double prevArmVelocity_ticksPerSec = 0;
+    protected FalconsArmFeedforward slideFeedforward = null;
 
 
     public DcMotorEx Arm;
@@ -141,8 +141,13 @@ public class PenguinsArm {
 
         // Class to calculate the power needed to run the arm at a certain speed
         // taking into account things like gravity based on the angle
-        armFeedforward = new FalconsArmFeedforward(ARM_PARAMS.ARM_FEEDFORWARD_KS, ARM_PARAMS.ARM_FEEDFORWARD_KCOS,
-                                                   ARM_PARAMS.ARM_FEEDFORWARD_KV, ARM_PARAMS.ARM_FEEDFORWARD_KA, telemetry);
+        armFeedforward = new FalconsArmFeedforward(ARM_PARAMS.armGains.ks, ARM_PARAMS.armGains.kgravity,
+                                                   ARM_PARAMS.armGains.kv, ARM_PARAMS.armGains.ka,
+                                                    FalconsArmFeedforward.MechanismType.ARM, telemetry, "Arm");
+
+        slideFeedforward = new FalconsArmFeedforward(ARM_PARAMS.slideGains.ks, ARM_PARAMS.slideGains.kgravity,
+                                                    ARM_PARAMS.slideGains.kv, ARM_PARAMS.slideGains.ka,
+                                                    FalconsArmFeedforward.MechanismType.SLIDE, telemetry, "Slide");
     }
 
     public void resetArmEncoder(){
@@ -189,9 +194,12 @@ public class PenguinsArm {
     }
 
     public void setArmVelocity(double desiredVelocityTicksPerSec) {
-        double currArmVelocity = Arm.getVelocity();
+        armAngleDeg = (Arm.getCurrentPosition() + INITIAL_ARM_ENCODER) * DEGREES_PER_ARM_TICK;
 
-        desiredVelocityTicksPerSec = Math.max(Math.min(desiredVelocityTicksPerSec, 2500), -2500);  //Limit result to a valid motor power
+        // Bound the desired velocity to the arm's maximum possible velocity
+        double maxVelocity = armFeedforward.maxAchievableVelocity(1.0, armAngleDeg, 0.0);
+        desiredVelocityTicksPerSec = Math.max(Math.min(desiredVelocityTicksPerSec, maxVelocity), -maxVelocity);  //Limit result to a valid motor power
+
         // The max angle the arm could move in any loop is the max of the current speed
         //  and the desired speed and the max assumed loop time
         // TODO: Is this the right logic?
@@ -200,36 +208,54 @@ public class PenguinsArm {
                 DEGREES_PER_ARM_TICK *
                         (desiredVelocityTicksPerSec * ARM_PARAMS.TIME_MOTOR_CAN_RUN_BETWEEN_LOOPS_SEC));
 
-        if(desiredVelocityTicksPerSec != 0 && canArmMove){
-            if (ARM_PARAMS.armVelocityMode == VELOCITY_FALCONS_FF){
-                // Update the Feedforward gains from the latest values which can be changed on the Dash
-                armFeedforward.ks_motorPower = ARM_PARAMS.ARM_FEEDFORWARD_KS;
-                armFeedforward.kcos_motorPower = ARM_PARAMS.ARM_FEEDFORWARD_KCOS;
-                armFeedforward.kv_motorPower_PerTickPerSec = ARM_PARAMS.ARM_FEEDFORWARD_KV;
-                armFeedforward.ka_motorPower_PerTickPerSec_PerSec = ARM_PARAMS.ARM_FEEDFORWARD_KA;
-
-                //Get the desired power based on the desired velocity and arm position
-                armAngleDeg = (Arm.getCurrentPosition() + INITIAL_ARM_ENCODER) * DEGREES_PER_ARM_TICK;
-                double avgArmVelocity = (currArmVelocity + prevArmVelocity_ticksPerSec) / 2;  //Avg over the past two loops
-                double desiredAccel = (desiredVelocityTicksPerSec - avgArmVelocity) / ARM_PARAMS.ARM_TIME_TO_ACCEL_SEC;
-
-                double desiredPower = armFeedforward.calculateArmPower(armAngleDeg, desiredVelocityTicksPerSec, desiredAccel);
-                telemetry.addData("Arm FF Power", desiredPower);
-                telemetry.addData("Arm FF Scaled to 1000", desiredPower*1000);
-
-                // Set the motor power based on the power calculated from feedForward
-                Arm.setPower(desiredPower);
-            }else {
-                //Use the built in DcMotorEx method to set the velocity
-                Arm.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-                Arm.setVelocity(desiredVelocityTicksPerSec);
-            }
-        }else{
+        if (desiredVelocityTicksPerSec != 0 && canArmMove) {
+            // Set the motor power based on the power calculated from feedForward
+            Arm.setPower(getMotorPower(desiredVelocityTicksPerSec, armFeedforward, ARM_PARAMS.armGains));
+        } else {
             Arm.setPower(0.0);
         }
 
         telemetry.addData("ArmCanMove", canArmMove);
-        prevArmVelocity_ticksPerSec = currArmVelocity;
+    }
+
+    public void setSlideVelocity(double desiredVelocityTicksPerSec) {
+        armAngleDeg = (Arm.getCurrentPosition() + INITIAL_ARM_ENCODER) * DEGREES_PER_ARM_TICK;
+
+        // Bound the desired velocity to the arm's maximum possible velocity
+        double maxVelocity = slideFeedforward.maxAchievableVelocity(1.0, armAngleDeg, 0.0);
+        desiredVelocityTicksPerSec = Math.max(Math.min(desiredVelocityTicksPerSec, maxVelocity), -maxVelocity);  //Limit result to a valid motor power
+
+        // The max angle the arm could move in any loop is the max of the current speed
+        //  and the desired speed and the max assumed loop time
+        // TODO: Is this the right logic?
+        // TODO: Can we easily figure out the max >0 and <0 of desired and actual speed?
+        boolean canSlideMove = getNewRobotLength(INCHES_PER_SLIDE_TICK *
+                                                    (desiredVelocityTicksPerSec * ARM_PARAMS.TIME_MOTOR_CAN_RUN_BETWEEN_LOOPS_SEC),
+                                                    0.0);
+
+        if (desiredVelocityTicksPerSec != 0 && canSlideMove) {
+            // Set the motor power based on the power calculated from feedForward
+            Slide.setPower(getMotorPower(desiredVelocityTicksPerSec, slideFeedforward, ARM_PARAMS.slideGains));
+        } else {
+            Slide.setPower(0.0);
+        }
+
+        telemetry.addData("SlideCanMove", canSlideMove);
+    }
+
+    public double getMotorPower(double desiredVelocityTicksPerSec, FalconsArmFeedforward feedforward, FeedforwardGains gains) {
+        // Update the Feedforward gains from the latest values which can be changed on the Dash
+        feedforward.ks_motorPower = gains.ks;
+        feedforward.kgravity_motorPower = gains.kgravity;
+        feedforward.kv_motorPower_PerTickPerSec = gains.kv;
+        feedforward.ka_motorPower_PerTickPerSec_PerSec = gains.ka;
+
+        //Get the desired power based on the desired velocity and arm position
+        double desiredPower = feedforward.calculateArmPower(armAngleDeg, desiredVelocityTicksPerSec);
+        telemetry.addData(feedforward.instanceName+" FF Power", desiredPower);
+        telemetry.addData(feedforward.instanceName+" FF Scaled to 1000", desiredPower*1000);
+
+        return desiredPower;
     }
 
     public void setArmPower(double desiredPower) {
@@ -302,21 +328,11 @@ public class PenguinsArm {
         protected int targetSlidePositionTicks;
         public ArmSlideToPosition(double armPosDegrees, double slidePosInches) {
             super();
-            if (armPosDegrees < 0) {
-                // The arm should not move
-                targetArmPositionTicks = Arm.getCurrentPosition();
-            } else {
-                // Convert target degrees to target ticks
-                targetArmPositionTicks = (int) (armPosDegrees/DEGREES_PER_ARM_TICK - INITIAL_ARM_ENCODER);
-            }
+            // Convert target degrees to target ticks
+            targetArmPositionTicks = (int) (armPosDegrees/DEGREES_PER_ARM_TICK - INITIAL_ARM_ENCODER);
 
-            if (slidePosInches < 0) {
-                // The slide should not move
-                targetSlidePositionTicks = Slide.getCurrentPosition();
-            } else {
-                // Convert target inches to target ticks
-                targetSlidePositionTicks = (int) (slidePosInches/INCHES_PER_SLIDE_TICK);
-            }
+            // Convert target inches to target ticks
+            targetSlidePositionTicks = (int) (slidePosInches/INCHES_PER_SLIDE_TICK);
         }
 
         protected boolean initialized = false;
