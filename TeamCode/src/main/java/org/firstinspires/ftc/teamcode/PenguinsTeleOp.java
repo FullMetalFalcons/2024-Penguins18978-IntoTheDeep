@@ -21,9 +21,6 @@ public class PenguinsTeleOp extends LinearOpMode {
     public static double REGULAR_ARM_POWER_UP = 1.0;
     public static double REGULAR_ARM_POWER_DOWN = -1.0;
 
-    // Custom Controls variables
-    double virtualRightStickX = 0.0;
-
     // Set up constants for the size of the robot
     public final double BOT_WIDTH = 18.0;
     // Set up constants for "preset" field locations
@@ -69,14 +66,6 @@ public class PenguinsTeleOp extends LinearOpMode {
 
         while(opModeIsActive()) {
             // Mecanum drive code
-            //  This code allows the robot to turn via gamepad 1 or 2's joystick
-            if (Math.abs(gamepad1.right_stick_x) > 0.0) {
-                virtualRightStickX = gamepad1.right_stick_x;
-            } else if (Math.abs(gamepad2.right_stick_x) > 0.3) {
-                virtualRightStickX = gamepad2.right_stick_x;
-            } else {
-                virtualRightStickX = 0.0;
-            }
             double px = 0.0;
             double py = 0.0;
             double pa = 0.0;
@@ -91,7 +80,7 @@ public class PenguinsTeleOp extends LinearOpMode {
                 // If the dpad is not in use, drive via sticks
                 px = gamepad1.left_stick_x;
                 py = -gamepad1.left_stick_y;
-                pa = -virtualRightStickX;
+                pa = -gamepad1.right_stick_x;
             }
             double p1 = px + py - pa;
             double p2 = -px + py + pa;

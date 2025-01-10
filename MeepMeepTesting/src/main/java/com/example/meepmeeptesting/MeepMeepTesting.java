@@ -16,7 +16,7 @@ public class MeepMeepTesting {
 
         // Set up constants for "preset" field locations
         int STARTING_POSITION_Y = -70 + (botWidth/2);
-        int STARTING_POSITION_X = 9;
+        int STARTING_POSITION_X = -9;  // Used to be +9
 
         int SCORING_POSITION_X = STARTING_POSITION_X;
         int SCORING_POSITION_Y = STARTING_POSITION_Y + 11;
@@ -37,6 +37,12 @@ public class MeepMeepTesting {
 
         // Set starting pose and run a sample trajectory (the +0's are use to make the parameter names appear)
         myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(STARTING_POSITION_X, STARTING_POSITION_Y, Math.toRadians(90)))
+                .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X, SCORING_POSITION_Y ), Math.toRadians(90))
+                .splineToLinearHeading(new Pose2d(-36, -30, Math.toRadians(0)), Math.toRadians(90))
+                .splineToLinearHeading(new Pose2d(-25, 0, Math.toRadians(0)), Math.toRadians(0))
+                .build());
+
+                /*
                 .waitSeconds(0.5)
                 // Move into Scoring Position
                 .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X, SCORING_POSITION_Y ), Math.toRadians(90))
@@ -71,6 +77,7 @@ public class MeepMeepTesting {
                 // Move to park
                 //.splineToLinearHeading(new Pose2d( PARKING_POSITION_X, PARKING_POSITION_Y, Math.toRadians(180)), 0)
                 .build());
+                 */
 
 
         // Set up MeepMeep appearances & visual settings
