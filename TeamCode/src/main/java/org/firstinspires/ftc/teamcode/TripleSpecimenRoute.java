@@ -21,10 +21,10 @@ public class TripleSpecimenRoute extends LinearOpMode {
 
     // Set up constants for "preset" field locations
     int STARTING_POSITION_Y = -70 + (botWidth/2);
-    int STARTING_POSITION_X = -9;  // Used to be +9
+    int STARTING_POSITION_X = 9;
 
     int SCORING_POSITION_X = STARTING_POSITION_X;
-    int SCORING_POSITION_Y = STARTING_POSITION_Y + 11;
+    int SCORING_POSITION_Y = STARTING_POSITION_Y + 13;
 
     int PICKUP_POSITION_X = 40;
     int PICKUP_POSITION_Y = STARTING_POSITION_Y + 3;
