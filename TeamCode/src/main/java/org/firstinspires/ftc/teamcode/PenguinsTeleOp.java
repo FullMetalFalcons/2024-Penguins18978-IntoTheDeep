@@ -9,6 +9,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import com.qualcomm.hardware.dfrobot.HuskyLens;
+
 
 @TeleOp
 @Config
@@ -28,6 +30,15 @@ public class PenguinsTeleOp extends LinearOpMode {
     public final double STARTING_POSITION_X = 9.0;
     public final double STARTING_ANGLE_DEG = 90.0;
 
+    private HuskyLens huskyLens;
+
+    private enum HuskyColors {
+        NONE,
+        BLUE,
+        RED
+    };
+    public HuskyColors colorInView = HuskyColors.NONE;
+
     public void runOpMode() {
         //This will send telemetry data to the web dashboard (192.168.43.1:8080/dash)
         //  in addition to the driver station.
@@ -38,6 +49,16 @@ public class PenguinsTeleOp extends LinearOpMode {
         PinpointDrive drive = new PinpointDrive(hardwareMap, STARTING_POSITION_X, STARTING_POSITION_Y, STARTING_ANGLE_DEG);
         PenguinsArm penguinsArm = new PenguinsArm(hardwareMap, telemetry);
         TelemetryPacketOpMode telemetryPacket = new TelemetryPacketOpMode(telemetry);
+
+        // Set up HuskyLens
+        huskyLens = hardwareMap.get(HuskyLens.class, "huskylens");
+        if (!huskyLens.knock()) {
+            telemetry.addData(">>", "Problem communicating with " + huskyLens.getDeviceName());
+        } else {
+            telemetry.addData(">>", "Press start to continue");
+        }
+        huskyLens.selectAlgorithm(HuskyLens.Algorithm.COLOR_RECOGNITION);
+
 
         //Define those motors and stuff
         //The string should be the name on the Driver Hub
@@ -189,6 +210,29 @@ public class PenguinsTeleOp extends LinearOpMode {
 
                 telemetry.addLine("Reset encoders");
             }
+
+
+            // Get HuskyLens data
+            HuskyLens.Block[] blocks = huskyLens.blocks();
+            telemetry.addData("Block count", blocks.length);
+
+            colorInView = HuskyColors.NONE;
+
+            // Walk through each object seen by the HuskyLens
+            for (int i = 0; i < blocks.length; i++) {
+                if (blocks[i].id == 1) {
+                    // HuskyLens sees a blue sample
+                    colorInView = HuskyColors.BLUE;
+                } else if (blocks[i].id == 2) {
+                    // HuskyLens sees a red sample
+                    colorInView = HuskyColors.RED;
+                }
+            }
+            if (blocks.length < 1) {
+                colorInView = HuskyColors.NONE;
+            }
+            telemetry.addData("Color detected:", colorInView);
+
 
             // Have each module add debug data to the telemetry object so it can be sent to the
             // driver's station

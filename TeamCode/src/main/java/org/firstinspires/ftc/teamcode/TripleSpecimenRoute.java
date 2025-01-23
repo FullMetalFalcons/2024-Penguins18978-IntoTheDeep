@@ -12,22 +12,19 @@ import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-// HuskyLens Specific Imports
-import com.qualcomm.hardware.dfrobot.HuskyLens;
-
 @Config
 @Autonomous
-public class SpecimenScoreRoute extends LinearOpMode {
+public class TripleSpecimenRoute extends LinearOpMode {
 
     // Set up constants for the size of the robot
     int botWidth = 18;
 
     // Set up constants for "preset" field locations
     int STARTING_POSITION_Y = -70 + (botWidth/2);
-    int STARTING_POSITION_X = 9;
+    int STARTING_POSITION_X = -9;  // Used to be +9
 
     int SCORING_POSITION_X = STARTING_POSITION_X;
-    int SCORING_POSITION_Y = STARTING_POSITION_Y + 12;
+    int SCORING_POSITION_Y = STARTING_POSITION_Y + 11;
 
     int PICKUP_POSITION_X = 40;
     int PICKUP_POSITION_Y = STARTING_POSITION_Y + 3;
@@ -39,26 +36,7 @@ public class SpecimenScoreRoute extends LinearOpMode {
     PenguinsArm arm = null;
 
 
-    private HuskyLens huskyLens;
-
-    public enum HuskyColors {
-        NONE,
-        BLUE,
-        RED
-    };
-    public HuskyColors colorInView = HuskyColors.NONE;
-
-
     public void runOpMode() {
-
-        huskyLens = hardwareMap.get(HuskyLens.class, "huskylens");
-        if (!huskyLens.knock()) {
-            telemetry.addData(">>", "Problem communicating with " + huskyLens.getDeviceName());
-        } else {
-            telemetry.addData(">>", "Press start to continue");
-        }
-        huskyLens.selectAlgorithm(HuskyLens.Algorithm.COLOR_RECOGNITION);
-
 
         drive = new PinpointDrive(hardwareMap, new Pose2d(STARTING_POSITION_X, STARTING_POSITION_Y, Math.toRadians(90)));
         arm = new PenguinsArm(hardwareMap, telemetry);
@@ -66,20 +44,34 @@ public class SpecimenScoreRoute extends LinearOpMode {
         // Close the claw on initialization
         arm.setClawPosition(arm.CLAW_CLOSED);
 
-        Action fullScoringTrajectory;
 
-        fullScoringTrajectory = drive.actionBuilder(drive.pose)
-                .waitSeconds(0.5)
-                .strafeTo(new Vector2d( SCORING_POSITION_X, SCORING_POSITION_Y) )
-                // Pause to score specimen
-                .waitSeconds(10)
+        Action drivingRoute1 = drive.actionBuilder(drive.pose)
+                // Move to push a sample into the Observation Zone
+                .splineToLinearHeading(new Pose2d(PICKUP_POSITION_X-10, PICKUP_POSITION_Y+20, Math.toRadians(90)), 0)
+                .splineToLinearHeading(new Pose2d(PICKUP_POSITION_X, PICKUP_POSITION_Y+50, Math.toRadians(90)), 0)
+                .strafeTo(new Vector2d(PICKUP_POSITION_X+8, PICKUP_POSITION_Y+50))
+                // Move straight down to push the sample
+                .strafeTo(new Vector2d(PICKUP_POSITION_X+8, PICKUP_POSITION_Y+5))
+                // Move out of the Zone and then back to Pickup Position
+                //.splineToConstantHeading(new Vector2d( PICKUP_POSITION_X-10, PICKUP_POSITION_Y+20), Math.toRadians(180))
+                //.strafeToLinearHeading(new Vector2d( PICKUP_POSITION_X-15, PICKUP_POSITION_Y+20), Math.toRadians(0))
+                .strafeTo(new Vector2d(PICKUP_POSITION_X+8, PICKUP_POSITION_Y+10))
+                .strafeTo(new Vector2d(PICKUP_POSITION_X-20, PICKUP_POSITION_Y+10))
+                // Wait for human player to place specimen
+                .waitSeconds(1)
                 .splineToLinearHeading(new Pose2d( PICKUP_POSITION_X, PICKUP_POSITION_Y, 0), 0)
                 // Pause to grab specimen
-                .waitSeconds(1)
-                .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X, SCORING_POSITION_Y ), Math.toRadians(90))
-                // Pause to score specimen
-                .waitSeconds(10)
-                .splineToLinearHeading(new Pose2d( PARKING_POSITION_X, PARKING_POSITION_Y, Math.toRadians(180)), 0)
+                .build();
+
+        Action drivingRoute2 = drive.actionBuilder(drive.pose)
+                // Move back to grab a second specimen
+                .strafeToLinearHeading(new Vector2d( PICKUP_POSITION_X, PICKUP_POSITION_Y), 0)
+                // Pause to grab specimen
+                .build();
+
+        Action drivingRoute3 = drive.actionBuilder(drive.pose)
+                // Move to park
+                //.splineToLinearHeading(new Pose2d( PARKING_POSITION_X, PARKING_POSITION_Y, Math.toRadians(180)), 0)
                 .build();
 
         Action scoringRoute1 = getNewScoringAction(0);
@@ -93,29 +85,17 @@ public class SpecimenScoreRoute extends LinearOpMode {
         if (isStopRequested()) return;
 
 
-        // Get HuskyLens data
-        HuskyLens.Block[] blocks = huskyLens.blocks();
-        telemetry.addData("Block count", blocks.length);
-
-        colorInView = HuskyColors.NONE;
-
-        for (int i = 0; i < blocks.length; i++) {
-            telemetry.addData("Block", blocks[i].toString());
-        }
-
-
         Actions.runBlocking(
                 new SequentialAction(
-                        // Score pre-loaded specimen
                         scoringRoute1,
-                        // Drive to get another
-                        drive.actionBuilder(drive.pose).splineToLinearHeading(new Pose2d( PICKUP_POSITION_X, PICKUP_POSITION_Y, 0), 0).build(),
+                        drivingRoute1,
                         arm.clawToPosition(arm.CLAW_CLOSED),
                         new SleepAction(0.75),
-                        // Score the newly grabbed specimenMo
                         scoringRoute2,
-                        // Park in the Observation Zone
-                        drive.actionBuilder(drive.pose).splineToLinearHeading(new Pose2d( PARKING_POSITION_X, PARKING_POSITION_Y, Math.toRadians(180)), 0).build()
+                        drivingRoute2,
+                        arm.clawToPosition(arm.CLAW_CLOSED),
+                        new SleepAction(0.75),
+                        scoringRoute3
                 )
         );
     }
