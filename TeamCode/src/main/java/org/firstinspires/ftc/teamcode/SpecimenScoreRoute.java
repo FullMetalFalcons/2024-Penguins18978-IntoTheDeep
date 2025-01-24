@@ -47,6 +47,7 @@ public class SpecimenScoreRoute extends LinearOpMode {
         RED
     };
     public HuskyColors colorInView = HuskyColors.NONE;
+    HuskyLens.Block[] blocks;
 
 
     public void runOpMode() {
@@ -93,17 +94,6 @@ public class SpecimenScoreRoute extends LinearOpMode {
         if (isStopRequested()) return;
 
 
-        // Get HuskyLens data
-        HuskyLens.Block[] blocks = huskyLens.blocks();
-        telemetry.addData("Block count", blocks.length);
-
-        colorInView = HuskyColors.NONE;
-
-        for (int i = 0; i < blocks.length; i++) {
-            telemetry.addData("Block", blocks[i].toString());
-        }
-
-
         Actions.runBlocking(
                 new SequentialAction(
                         // Score pre-loaded specimen
@@ -112,7 +102,31 @@ public class SpecimenScoreRoute extends LinearOpMode {
                         drive.actionBuilder(drive.pose).splineToLinearHeading(new Pose2d( PICKUP_POSITION_X, PICKUP_POSITION_Y, 0), 0).build(),
                         arm.clawToPosition(arm.CLAW_CLOSED),
                         new SleepAction(0.75),
-                        // Score the newly grabbed specimenMo
+                        // Back up to check camera data
+                        drive.actionBuilder(drive.pose).strafeToLinearHeading(new Vector2d(PICKUP_POSITION_X-5, PICKUP_POSITION_Y ), 0).build()
+                        )
+        );
+
+        getHuskyLensData();
+        while (getHuskyLensColor() == HuskyColors.NONE) {
+            // The pickup process failed somehow: Pause and try again
+            Actions.runBlocking(
+                    new SequentialAction(
+                            arm.clawToPosition(arm.CLAW_OPEN),
+                            new SleepAction(1),
+                            drive.actionBuilder(drive.pose).strafeToLinearHeading(new Vector2d( PICKUP_POSITION_X, PICKUP_POSITION_Y), 0).build(),
+                            arm.clawToPosition(arm.CLAW_CLOSED)
+                    )
+            );
+            // Check the camera again
+            // If the pickup failed, try again (again)
+            getHuskyLensData();
+        }
+        // If the statement above is false, everything succeeded: Precede as normal
+
+        Actions.runBlocking(
+                new SequentialAction(
+                        // Score 2nd specimen
                         scoringRoute2,
                         // Park in the Observation Zone
                         drive.actionBuilder(drive.pose).splineToLinearHeading(new Pose2d( PARKING_POSITION_X, PARKING_POSITION_Y, Math.toRadians(180)), 0).build()
@@ -133,5 +147,27 @@ public class SpecimenScoreRoute extends LinearOpMode {
                 new SleepAction(0.2),
                 arm.armToPosition(arm.ARM_RESET_DEGREES, arm.SLIDE_RESET_INCHES)
         );
+    }
+
+    private void getHuskyLensData() {
+        blocks = huskyLens.blocks();
+    }
+
+    private HuskyColors getHuskyLensColor() {
+
+        // Walk through each object seen by the HuskyLens
+        for (int i = 0; i < blocks.length; i++) {
+            if (blocks[i].id == 1) {
+                // HuskyLens sees a blue sample
+                colorInView = HuskyColors.BLUE;
+            } else if (blocks[i].id == 2) {
+                // HuskyLens sees a red sample
+                colorInView = HuskyColors.RED;
+            }
+        }
+        if (blocks.length < 1) {
+            colorInView = HuskyColors.NONE;
+        }
+        return colorInView;
     }
 }
