@@ -15,6 +15,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 // HuskyLens Specific Imports
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 
+import java.util.Objects;
+
 @Config
 @Autonomous
 public class SpecimenScoreRoute extends LinearOpMode {
@@ -112,8 +114,11 @@ public class SpecimenScoreRoute extends LinearOpMode {
             // The pickup process failed somehow: Pause and try again
             Actions.runBlocking(
                     new SequentialAction(
+                            // Back up to check camera data
+                            drive.actionBuilder(drive.pose).strafeToLinearHeading(new Vector2d(PICKUP_POSITION_X-5, PICKUP_POSITION_Y ), 0).build(),
                             arm.clawToPosition(arm.CLAW_OPEN),
                             new SleepAction(1),
+                            // Drive back to get specimen
                             drive.actionBuilder(drive.pose).strafeToLinearHeading(new Vector2d( PICKUP_POSITION_X, PICKUP_POSITION_Y), 0).build(),
                             arm.clawToPosition(arm.CLAW_CLOSED)
                     )
