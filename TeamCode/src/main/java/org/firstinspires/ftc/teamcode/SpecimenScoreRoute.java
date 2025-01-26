@@ -26,8 +26,12 @@ public class SpecimenScoreRoute extends LinearOpMode {
     int STARTING_POSITION_Y = -70 + (botWidth/2);
     int STARTING_POSITION_X = 9;
 
+    // 12 for Blue Side, 13 for Red Side
+    //   set by HuskyLens just after initialization
+    int scoringPositionAddonY = 13;
+
     int SCORING_POSITION_X = STARTING_POSITION_X;
-    int SCORING_POSITION_Y = STARTING_POSITION_Y + 13;
+    int SCORING_POSITION_Y = STARTING_POSITION_Y; // scoringPositionAddon will be added later
 
     int PICKUP_POSITION_X = 40;
     int PICKUP_POSITION_Y = STARTING_POSITION_Y + 3;
@@ -91,6 +95,17 @@ public class SpecimenScoreRoute extends LinearOpMode {
         Action scoringRoute2 = getNewScoringAction(-6);
 
         Action scoringRoute3 = getNewScoringAction(-12);
+
+
+        // Detect the color of our pre-loaded Specimen and use it to modify our position variables
+        if (getHuskyLensColor() == HuskyColors.BLUE) {
+            // We are on Blue alliance
+            scoringPositionAddonY = 12;
+        } else if (getHuskyLensColor() == HuskyColors.RED) {
+            // We are on Red alliance
+            scoringPositionAddonY = 13;
+        }
+        SCORING_POSITION_Y += scoringPositionAddonY;
 
 
         waitForStart();
