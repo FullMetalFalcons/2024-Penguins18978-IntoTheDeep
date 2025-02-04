@@ -276,16 +276,20 @@ public class PenguinsArm {
             packet.put("Actual Slide Position", Slide.getTargetPosition());
             packet.put("Slide isBusy", Slide.isBusy());
 
+            // Find out how far each mechanism is from their desired positions
+            int armErrorTicks = Math.abs(Arm.getCurrentPosition() - Arm.getTargetPosition());
+            int slideErrorTicks = Math.abs(Slide.getCurrentPosition() - Slide.getTargetPosition());
+
             //TODO Add limit checks
-            if (Arm.isBusy() || Slide.isBusy()) {
+            if (armErrorTicks > 10 || slideErrorTicks > 10) {
                 // Returning true will run the action again
                 Arm.setPower(1);
                 Slide.setPower(1);
                 return true;
             } else {
                 // Returning false will end the action
-                Arm.setPower(0);
-                Slide.setPower(0);
+                //Arm.setPower(0);
+                //Slide.setPower(0);
                 return false;
             }
         }
