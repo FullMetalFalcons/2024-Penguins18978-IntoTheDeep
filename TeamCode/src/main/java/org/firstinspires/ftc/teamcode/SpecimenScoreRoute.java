@@ -26,12 +26,13 @@ public class SpecimenScoreRoute extends LinearOpMode {
     int STARTING_POSITION_Y = -70 + (botWidth/2);
     int STARTING_POSITION_X = 9;
 
-    // 12 for Blue Side, 13 for Red Side
-    //   set by HuskyLens just after initialization
-    int scoringPositionAddonY = 13;
+    // A distance that will be added to SCORING_POSITION_Y
+    //   after team alliance color is determined (to account
+    //   for red and blue side differences)
+    int scoringPositionYAddon = 13;
 
     int SCORING_POSITION_X = STARTING_POSITION_X;
-    int SCORING_POSITION_Y = STARTING_POSITION_Y; // scoringPositionAddon will be added later
+    int SCORING_POSITION_Y = STARTING_POSITION_Y;
 
     int PICKUP_POSITION_X = 40;
     int PICKUP_POSITION_Y = STARTING_POSITION_Y + 3;
@@ -97,17 +98,6 @@ public class SpecimenScoreRoute extends LinearOpMode {
         Action scoringRoute3 = getNewScoringAction(-12);
 
 
-        // Detect the color of our pre-loaded Specimen and use it to modify our position variables
-        if (getHuskyLensColor() == HuskyColors.BLUE) {
-            // We are on Blue alliance
-            scoringPositionAddonY = 12;
-        } else if (getHuskyLensColor() == HuskyColors.RED) {
-            // We are on Red alliance
-            scoringPositionAddonY = 13;
-        }
-        SCORING_POSITION_Y += scoringPositionAddonY;
-
-
         waitForStart();
         if (isStopRequested()) return;
 
@@ -123,7 +113,7 @@ public class SpecimenScoreRoute extends LinearOpMode {
                         // Back up to check camera data
                         drive.actionBuilder(drive.pose).strafeToConstantHeading(new Vector2d( CAMERA_CHECK_POSITION_X, CAMERA_CHECK_POSITION_Y )).build(),
                         new SleepAction(0.1)
-                        )
+                )
         );
 
         while (getHuskyLensColor() == HuskyColors.NONE) {
@@ -155,6 +145,15 @@ public class SpecimenScoreRoute extends LinearOpMode {
     }
 
     public Action getNewScoringAction(int barOffsetX) {
+
+        // Adjust positioning based on which color specimen is pre-loaded
+        if (getHuskyLensColor() == HuskyColors.BLUE) {
+            scoringPositionYAddon = 12;
+        } else if (getHuskyLensColor() == HuskyColors.RED) {
+            scoringPositionYAddon = 13;
+        }
+        SCORING_POSITION_Y += scoringPositionYAddon;
+
         return new SequentialAction(
                 new ParallelAction(
                         arm.armToPosition(arm.ARM_SPECIMEN_READY_DEGREES, arm.SLIDE_RESET_INCHES),
