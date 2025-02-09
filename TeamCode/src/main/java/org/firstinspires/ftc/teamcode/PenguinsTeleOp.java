@@ -150,9 +150,9 @@ public class PenguinsTeleOp extends LinearOpMode {
             //TODO: Figure out how to switch directions in auto
             //See if we need to start some auto arm movements
             if (gamepad2.dpad_down && autoArmSlider == null) {
-                autoArmSlider = penguinsArm.armToPosition(penguinsArm.ARM_RESET_DEGREES, penguinsArm.SLIDE_RESET_INCHES);
+                autoArmSlider = penguinsArm.armToPosition(penguinsArm.ARM_RESET_DEGREES, penguinsArm.SLIDE_RESET_INCHES, 10);
             } else if (gamepad2.dpad_up && autoArmSlider == null) {
-                autoArmSlider = penguinsArm.armToPosition(penguinsArm.ARM_SPECIMEN_READY_DEGREES, penguinsArm.SLIDE_SPECIMEN_READY_INCHES);
+                autoArmSlider = penguinsArm.armToPosition(penguinsArm.ARM_SPECIMEN_READY_DEGREES, penguinsArm.SLIDE_SPECIMEN_READY_INCHES, 10);
             }
 
             if (desiredArmPower != 0 || desiredSlidePower != 0) {
