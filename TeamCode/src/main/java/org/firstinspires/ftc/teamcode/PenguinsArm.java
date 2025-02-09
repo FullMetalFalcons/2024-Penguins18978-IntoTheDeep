@@ -221,23 +221,19 @@ public class PenguinsArm {
         // Use constructor parameter to set target position
         private int targetArmPositionTicks;
         private int targetSlidePositionTicks;
-        public ArmSlideToPosition(double armPosDegrees, double slidePosInches) {
+        private int endErrorTicks;
+        public ArmSlideToPosition(double armPosDegrees, double slidePosInches, int errorToEndTicks) {
             super();
-            if (armPosDegrees < 0) {
-                // The arm should not move
-                targetArmPositionTicks = Arm.getCurrentPosition();
-            } else {
-                // Convert target degrees to target ticks
-                targetArmPositionTicks = (int) (armPosDegrees/DEGREES_PER_ARM_TICK - INITIAL_ARM_ENCODER);
-            }
+            // Convert target degrees to target ticks
+            targetArmPositionTicks = (int) (armPosDegrees/DEGREES_PER_ARM_TICK - INITIAL_ARM_ENCODER);
 
-            if (slidePosInches < 0) {
-                // The slide should not move
-                targetSlidePositionTicks = Slide.getCurrentPosition();
-            } else {
-                // Convert target inches to target ticks
-                targetSlidePositionTicks = (int) (slidePosInches/INCHES_PER_SLIDE_TICK);
-            }
+            // Convert target inches to target ticks
+            targetSlidePositionTicks = (int) (slidePosInches/INCHES_PER_SLIDE_TICK);
+
+            // Once our arm and slide have less error than this, the
+            //   next action will begin (as the arm and slide fine
+            //   tune themselves in parallel)
+            endErrorTicks = errorToEndTicks;
         }
 
         private boolean initialized = false;
@@ -264,24 +260,24 @@ public class PenguinsArm {
             if (!initialized) {
                 Arm.setTargetPosition(targetArmPositionTicks);
                 Arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                packet.put("Arm isBusy", Arm.isBusy());
 
                 Slide.setTargetPosition(targetSlidePositionTicks);
                 Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                packet.put("Slide isBusy", Slide.isBusy());
                 initialized = true;
             }
-            packet.put("Target Arm Position", targetArmPositionTicks);
-            packet.put("Actual Arm Position", Arm.getTargetPosition());
-            packet.put("Arm isBusy", Arm.isBusy());
-            packet.put("Target Slide Position", targetSlidePositionTicks);
-            packet.put("Actual Slide Position", Slide.getTargetPosition());
-            packet.put("Slide isBusy", Slide.isBusy());
+            //packet.put("Target Arm Position", targetArmPositionTicks);
+            //packet.put("Actual Arm Position", Arm.getTargetPosition());
+            //packet.put("Target Slide Position", targetSlidePositionTicks);
+            //packet.put("Actual Slide Position", Slide.getTargetPosition());
 
             // Find out how far each mechanism is from their desired positions
             int armErrorTicks = Math.abs(Arm.getCurrentPosition() - Arm.getTargetPosition());
             int slideErrorTicks = Math.abs(Slide.getCurrentPosition() - Slide.getTargetPosition());
 
             //TODO Add limit checks
-            if (armErrorTicks > 10 || slideErrorTicks > 10) {
+            if ((armErrorTicks > endErrorTicks && Arm.isBusy()) || (slideErrorTicks > endErrorTicks && Slide.isBusy())) {
                 // Returning true will run the action again
                 Arm.setPower(1);
                 Slide.setPower(1);
@@ -294,7 +290,7 @@ public class PenguinsArm {
             }
         }
     }
-    public ArmSlideToPosition armToPosition(double targetArmDegrees, double targetSlideInches) {
-        return new ArmSlideToPosition(targetArmDegrees, targetSlideInches);
+    public ArmSlideToPosition armToPosition(double targetArmDegrees, double targetSlideInches, int errorToEndTicks) {
+        return new ArmSlideToPosition(targetArmDegrees, targetSlideInches, errorToEndTicks);
     }
 }
