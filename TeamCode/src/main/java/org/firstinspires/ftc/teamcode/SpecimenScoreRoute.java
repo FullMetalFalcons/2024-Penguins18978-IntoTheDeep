@@ -68,6 +68,15 @@ public class SpecimenScoreRoute extends LinearOpMode {
         }
         huskyLens.selectAlgorithm(HuskyLens.Algorithm.COLOR_RECOGNITION);
 
+        // Adjust robot positioning based on which color specimen is pre-loaded
+        if (getHuskyLensColor() == HuskyColors.BLUE) {
+            scoringPositionYAddon = 12;
+        } else if (getHuskyLensColor() == HuskyColors.RED) {
+            scoringPositionYAddon = 13;
+        }
+        SCORING_POSITION_Y += scoringPositionYAddon;
+
+
 
         drive = new PinpointDrive(hardwareMap, new Pose2d(STARTING_POSITION_X, STARTING_POSITION_Y, Math.toRadians(90)));
         arm = new PenguinsArm(hardwareMap, telemetry);
@@ -75,21 +84,6 @@ public class SpecimenScoreRoute extends LinearOpMode {
         // Close the claw on initialization
         arm.setClawPosition(arm.CLAW_CLOSED);
 
-        Action fullScoringTrajectory;
-
-        fullScoringTrajectory = drive.actionBuilder(drive.pose)
-                .waitSeconds(0.5)
-                .strafeTo(new Vector2d( SCORING_POSITION_X, SCORING_POSITION_Y) )
-                // Pause to score specimen
-                .waitSeconds(10)
-                .splineToLinearHeading(new Pose2d( PICKUP_POSITION_X, PICKUP_POSITION_Y, 0), 0)
-                // Pause to grab specimen
-                .waitSeconds(1)
-                .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X, SCORING_POSITION_Y ), Math.toRadians(90))
-                // Pause to score specimen
-                .waitSeconds(10)
-                .splineToLinearHeading(new Pose2d( PARKING_POSITION_X, PARKING_POSITION_Y, Math.toRadians(180)), 0)
-                .build();
 
         Action scoringRoute1 = getNewScoringAction(0);
 
@@ -145,26 +139,17 @@ public class SpecimenScoreRoute extends LinearOpMode {
     }
 
     public Action getNewScoringAction(int barOffsetX) {
-
-        // Adjust positioning based on which color specimen is pre-loaded
-        if (getHuskyLensColor() == HuskyColors.BLUE) {
-            scoringPositionYAddon = 12;
-        } else if (getHuskyLensColor() == HuskyColors.RED) {
-            scoringPositionYAddon = 13;
-        }
-        SCORING_POSITION_Y += scoringPositionYAddon;
-
         return new SequentialAction(
                 new ParallelAction(
-                        arm.armToPosition(arm.ARM_SPECIMEN_READY_DEGREES, arm.SLIDE_RESET_INCHES),
-                        drive.actionBuilder(drive.pose).strafeToLinearHeading(new Vector2d( SCORING_POSITION_X + barOffsetX, SCORING_POSITION_Y ), Math.toRadians(90)).build()
+                        drive.actionBuilder(drive.pose).strafeToLinearHeading(new Vector2d( SCORING_POSITION_X + barOffsetX, SCORING_POSITION_Y ), Math.toRadians(90)).build(),
+                        arm.armToPosition(arm.ARM_SPECIMEN_READY_DEGREES, arm.SLIDE_RESET_INCHES, 30)
                 ),
-                arm.armToPosition(arm.ARM_SPECIMEN_READY_DEGREES, arm.SLIDE_SPECIMEN_READY_INCHES),
-                arm.armToPosition(arm.ARM_SPECIMEN_SCORE_DEGREES, arm.SLIDE_SPECIMEN_READY_INCHES),
-                arm.armToPosition(arm.ARM_SPECIMEN_SCORE_DEGREES, arm.SLIDE_SPECIMEN_SCORE_INCHES),
+                arm.armToPosition(arm.ARM_SPECIMEN_READY_DEGREES, arm.SLIDE_SPECIMEN_READY_INCHES, 10),
+                arm.armToPosition(arm.ARM_SPECIMEN_SCORE_DEGREES, arm.SLIDE_SPECIMEN_READY_INCHES, 30),
+                arm.armToPosition(arm.ARM_SPECIMEN_SCORE_DEGREES, arm.SLIDE_SPECIMEN_SCORE_INCHES, 15),
                 arm.clawToPosition(arm.CLAW_OPEN),
                 new SleepAction(0.2),
-                arm.armToPosition(arm.ARM_RESET_DEGREES, arm.SLIDE_RESET_INCHES)
+                arm.armToPosition(arm.ARM_RESET_DEGREES, arm.SLIDE_RESET_INCHES, 30)
         );
     }
 
