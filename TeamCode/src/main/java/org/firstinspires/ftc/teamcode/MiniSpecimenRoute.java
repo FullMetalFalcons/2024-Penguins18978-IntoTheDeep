@@ -65,15 +65,15 @@ public class MiniSpecimenRoute extends LinearOpMode {
     public Action getNewScoringAction(int barOffsetX) {
         return new SequentialAction(
                 new ParallelAction(
-                        arm.armToPosition(arm.ARM_SPECIMEN_READY_DEGREES, arm.SLIDE_RESET_INCHES),
+                        arm.armToPosition(arm.ARM_SPECIMEN_READY_DEGREES, arm.SLIDE_RESET_INCHES, 30),
                         drive.actionBuilder(drive.pose).strafeToLinearHeading(new Vector2d( SCORING_POSITION_X + barOffsetX, SCORING_POSITION_Y ), Math.toRadians(90)).build()
                 ),
-                arm.armToPosition(arm.ARM_SPECIMEN_READY_DEGREES, arm.SLIDE_SPECIMEN_READY_INCHES),
-                arm.armToPosition(arm.ARM_SPECIMEN_SCORE_DEGREES, arm.SLIDE_SPECIMEN_READY_INCHES),
-                arm.armToPosition(arm.ARM_SPECIMEN_SCORE_DEGREES, arm.SLIDE_SPECIMEN_SCORE_INCHES),
+                arm.armToPosition(arm.ARM_SPECIMEN_READY_DEGREES, arm.SLIDE_SPECIMEN_READY_INCHES, 30),
+                arm.armToPosition(arm.ARM_SPECIMEN_SCORE_DEGREES, arm.SLIDE_SPECIMEN_READY_INCHES, 30),
+                arm.armToPosition(arm.ARM_SPECIMEN_SCORE_DEGREES, arm.SLIDE_SPECIMEN_SCORE_INCHES, 30),
                 arm.clawToPosition(arm.CLAW_OPEN),
                 new SleepAction(0.2),
-                arm.armToPosition(arm.ARM_RESET_DEGREES, arm.SLIDE_RESET_INCHES)
+                arm.armToPosition(arm.ARM_RESET_DEGREES, arm.SLIDE_RESET_INCHES, 30)
         );
     }
 }
