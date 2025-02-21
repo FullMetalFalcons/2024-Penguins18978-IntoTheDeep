@@ -17,7 +17,7 @@ import com.qualcomm.hardware.dfrobot.HuskyLens;
 public class PenguinsTeleOp extends LinearOpMode {
     //Initialize motors, servos, sensors, imus, etc.
     DcMotorEx m1, m2, m3, m4, Arm, Slide, Hanger;
-    Servo Claw;
+    Servo Claw, Light;
 
     // 'Public static' vars can be viewed and changed on the web dashboard
     public static double REGULAR_ARM_POWER_UP = 1.0;
@@ -29,6 +29,10 @@ public class PenguinsTeleOp extends LinearOpMode {
     public final double STARTING_POSITION_Y = -70.0 + (BOT_WIDTH /2);
     public final double STARTING_POSITION_X = 9.0;
     public final double STARTING_ANGLE_DEG = 90.0;
+
+    // Indicator Light constants
+    public final double LED_RED = 0.279;
+    public final double LED_BLUE = 0.611;
 
     private HuskyLens huskyLens;
 
@@ -65,12 +69,14 @@ public class PenguinsTeleOp extends LinearOpMode {
         m1 = drive.leftFront;
         m2 = drive.rightFront;
         m3 = drive.leftBack;
-        m4 = drive.rightBack;;
+        m4 = drive.rightBack;
 
-        Arm = penguinsArm.Arm;;
+        Arm = penguinsArm.Arm;
         Slide = penguinsArm.Slide;
         Claw = penguinsArm.Claw;
         Hanger = penguinsArm.Hanger;
+
+        Light = hardwareMap.get(Servo.class, "rightIndicatorLight");
 
         // TODO: Figure out if this can be removed or should be added to MecanumDrive
         //This lets you look at encoder values while the OpMode is active
