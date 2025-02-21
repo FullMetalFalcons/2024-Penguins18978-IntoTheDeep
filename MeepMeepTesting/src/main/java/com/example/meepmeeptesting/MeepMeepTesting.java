@@ -47,22 +47,23 @@ public class MeepMeepTesting {
                 .splineToLinearHeading(new Pose2d(PICKUP_POSITION_X, PICKUP_POSITION_Y+42, Math.toRadians(90)), 0)
                 .strafeTo(new Vector2d(PICKUP_POSITION_X+6, PICKUP_POSITION_Y+42))
                 // Move straight down to push the sample
-                .strafeTo(new Vector2d(PICKUP_POSITION_X+8, PICKUP_POSITION_Y+5))
+                .strafeTo(new Vector2d(PICKUP_POSITION_X+6, PICKUP_POSITION_Y+5))
                 // Move out of the Zone and then back to Pickup Position
-                .strafeTo(new Vector2d(PICKUP_POSITION_X+8, PICKUP_POSITION_Y+10))
+                .strafeTo(new Vector2d(PICKUP_POSITION_X+6, PICKUP_POSITION_Y+10))
                 .strafeToLinearHeading(new Vector2d(PICKUP_POSITION_X-15, PICKUP_POSITION_Y ), Math.toRadians(0))
                 .waitSeconds(1)
                 .splineToLinearHeading(new Pose2d( PICKUP_POSITION_X, PICKUP_POSITION_Y, 0), 0)
                 // Pause to grab specimen
                 .waitSeconds(1)
-                .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X-6, SCORING_POSITION_Y ), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X-3, SCORING_POSITION_Y ), Math.toRadians(90))
                 // Pause to score specimen
                 .waitSeconds(4)
                 // Move back to grab a second specimen
-                .splineToLinearHeading(new Pose2d( PICKUP_POSITION_X, PICKUP_POSITION_Y, 0), 0)
+                .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X, PICKUP_POSITION_Y ), Math.toRadians(0))
+                .strafeToLinearHeading(new Vector2d( PICKUP_POSITION_X, PICKUP_POSITION_Y ), 0)
                 // Pause to grab specimen
                 .waitSeconds(1)
-                .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X-12, SCORING_POSITION_Y ), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X-6, SCORING_POSITION_Y ), Math.toRadians(90))
                 // Pause to score specimen
                 .waitSeconds(4)
                 .turn(Math.toRadians(1))
