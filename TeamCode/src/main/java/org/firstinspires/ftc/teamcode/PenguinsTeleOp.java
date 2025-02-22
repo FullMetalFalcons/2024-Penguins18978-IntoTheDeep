@@ -11,6 +11,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 
+import java.util.concurrent.TimeUnit;
+
 
 @TeleOp
 @Config
@@ -33,10 +35,20 @@ public class PenguinsTeleOp extends LinearOpMode {
     // Indicator Light constants
     public final double LED_RED = 0.279;
     public final double LED_BLUE = 0.611;
+    public final double LED_YELLOW = 0.38;
+    public final double LED_GREEN = 0.5;
 
+
+    // Match time variables
+    public double startTimeSeconds;
+    public double matchDurationSeconds = 120;
+    public double elapsedTimeSeconds;
+    public double timeLeftSeconds;
+
+
+    // HuskyLens variables
     private HuskyLens huskyLens;
-
-    private enum HuskyColors {
+    public enum HuskyColors {
         NONE,
         BLUE,
         RED
@@ -90,6 +102,9 @@ public class PenguinsTeleOp extends LinearOpMode {
         PenguinsArm.ArmSlideToPosition autoArmSlider = null;
 
         waitForStart();
+
+        // Set start time now
+        startTimeSeconds = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime());
 
         while(opModeIsActive()) {
             // Mecanum drive code
@@ -240,6 +255,12 @@ public class PenguinsTeleOp extends LinearOpMode {
             telemetry.addData("Color detected:", colorInView);
 
 
+            // Update match time variables
+            elapsedTimeSeconds = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime()) - startTimeSeconds;
+            timeLeftSeconds = matchDurationSeconds - elapsedTimeSeconds;
+            handleAndCallBlinks();
+
+
             // Have each module add debug data to the telemetry object so it can be sent to the
             // driver's station
             drive.addDebugData(telemetry);
@@ -250,6 +271,20 @@ public class PenguinsTeleOp extends LinearOpMode {
         } // opModeActive loop ends
     }
 
-
+    public void handleAndCallBlinks() {
+        // Choose color based on time frame
+        if (timeLeftSeconds < 10) {
+            // Red for "HANG THIS INSTANT!!!"
+            Light.setPosition(LED_RED);
+        } else if (timeLeftSeconds < 20) {
+            // Yellow for "Go, like now"
+            Light.setPosition(LED_YELLOW);
+        } else if (timeLeftSeconds < 30) {
+            // Green for "Endgame! Watch your cycling"
+            Light.setPosition(LED_GREEN);
+        } else {
+            Light.setPosition(0);
+        }
+    }
 
 } // end class
