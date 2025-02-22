@@ -9,7 +9,6 @@ import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
-import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -60,7 +59,7 @@ public class TripleSpecimenRoute extends LinearOpMode {
         BLUE,
         RED
     };
-    public SpecimenScoreRoute.HuskyColors colorInView = SpecimenScoreRoute.HuskyColors.NONE;
+    public HuskyColors colorInView = HuskyColors.NONE;
     HuskyLens.Block[] blocks;
 
 
@@ -78,7 +77,7 @@ public class TripleSpecimenRoute extends LinearOpMode {
 
         sleep(100);
         // Adjust robot positioning based on which color specimen is pre-loaded
-        if (getHuskyLensColor() == SpecimenScoreRoute.HuskyColors.BLUE || gamepad1.a) {
+        if (getHuskyLensColor() == HuskyColors.BLUE || gamepad1.a) {
             scoringPositionYAddon = 11;
             Light.setPosition(LED_BLUE);
         } else {
@@ -172,7 +171,7 @@ public class TripleSpecimenRoute extends LinearOpMode {
         );
     }
 
-    private SpecimenScoreRoute.HuskyColors getHuskyLensColor() {
+    private HuskyColors getHuskyLensColor() {
         // Get camera data
         blocks = huskyLens.blocks();
 
@@ -180,14 +179,14 @@ public class TripleSpecimenRoute extends LinearOpMode {
         for (int i = 0; i < blocks.length; i++) {
             if (blocks[i].id == 1) {
                 // HuskyLens sees a blue sample
-                colorInView = SpecimenScoreRoute.HuskyColors.BLUE;
+                colorInView = HuskyColors.BLUE;
             } else if (blocks[i].id == 2) {
                 // HuskyLens sees a red sample
-                colorInView = SpecimenScoreRoute.HuskyColors.RED;
+                colorInView = HuskyColors.RED;
             }
         }
         if (blocks.length < 1) {
-            colorInView = SpecimenScoreRoute.HuskyColors.NONE;
+            colorInView = HuskyColors.NONE;
         }
         return colorInView;
     }
