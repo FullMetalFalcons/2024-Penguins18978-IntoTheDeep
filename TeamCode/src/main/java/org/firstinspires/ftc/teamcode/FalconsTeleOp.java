@@ -1,18 +1,24 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.ftc.GoBildaPinpointDriverRR;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
+import java.util.Locale;
+
 @TeleOp
 public class FalconsTeleOp extends LinearOpMode {
     //Initialize motors, servos, sensors, imus, etc.
     DcMotorEx motorLF, motorRF, motorLB, motorRB;
-    // TODO: Uncomment the following line if you are using servos
-    //Servo Claw;
+    GoBildaPinpointDriverRR odo;
 
     public static MecanumDrive.Params DRIVE_PARAMS = new MecanumDrive.Params();
+    public static PinpointDrive.Params PINPOINT_PARAMS = new PinpointDrive.Params();
 
 
     // The following code will run as soon as "INIT" is pressed on the Driver Station
@@ -57,12 +63,22 @@ public class FalconsTeleOp extends LinearOpMode {
         motorRB.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
+        // Setup Pinpoint
+        odo = hardwareMap.get(GoBildaPinpointDriverRR.class, PINPOINT_PARAMS.pinpointDeviceName);
+        odo.setOffsets(DistanceUnit.MM.fromInches(PINPOINT_PARAMS.xOffset), DistanceUnit.MM.fromInches(PINPOINT_PARAMS.yOffset));
+        odo.setEncoderResolution(PINPOINT_PARAMS.encoderResolution);
+        odo.setEncoderDirections(PINPOINT_PARAMS.xDirection, PINPOINT_PARAMS.yDirection);
+
+        odo.resetPosAndIMU();
+
+
         // The program will pause here until the Play icon is pressed on the Driver Station
         waitForStart();
 
         // opModeIsActive() returns "true" as long as the Stop button has not been pressed on the Driver Station
         while(opModeIsActive()) {
 
+            /*
             // Mecanum drive code
             double powerX = 0.0;  // Desired power for strafing           (-1 to 1)
             double powerY = 0.0;  // Desired power for forward/backward   (-1 to 1)
@@ -86,6 +102,41 @@ public class FalconsTeleOp extends LinearOpMode {
             max = Math.max(max, Math.abs(powerRB));
 
             // Scale all power variables down to a number between 0 and 1 (so that setPower will accept them)
+            powerLF /= max;
+            powerLB /= max;
+            powerRF /= max;
+            powerRB /= max;
+
+            motorLF.setPower(powerLF);
+            motorLB.setPower(powerLB);
+            motorRF.setPower(powerRF);
+            motorRB.setPower(powerRB);
+            */
+
+            // Field Centric Drive code
+            odo.update();
+            Pose2d pos = odo.getPositionRR();
+            double headingRadians = -pos.heading.toDouble();
+            telemetry.addData("Heading", Math.toDegrees(headingRadians));
+            telemetry.update();
+
+            double desiredForward = -gamepad1.left_stick_y;
+            double desiredStrafe = gamepad1.left_stick_x;
+            double desiredTurn = -gamepad1.right_stick_x;
+
+            double powerForward = (desiredForward * Math.cos(headingRadians)) + (desiredStrafe * Math.sin(headingRadians));
+            double powerStrafe = (desiredStrafe * Math.cos(headingRadians)) - (desiredForward * Math.sin(headingRadians));
+
+            double powerLF = powerStrafe + powerForward - desiredTurn;
+            double powerLB = -powerStrafe + powerForward - desiredTurn;
+            double powerRF = -powerStrafe + powerForward + desiredTurn;
+            double powerRB = powerStrafe + powerForward + desiredTurn;
+
+            double max = Math.max(1.0, Math.abs(powerLF));
+            max = Math.max(max, Math.abs(powerRF));
+            max = Math.max(max, Math.abs(powerLB));
+            max = Math.max(max, Math.abs(powerRB));
+
             powerLF /= max;
             powerLB /= max;
             powerRF /= max;
