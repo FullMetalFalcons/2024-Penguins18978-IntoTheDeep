@@ -258,7 +258,7 @@ public class PenguinsTeleOp extends LinearOpMode {
             // Update match time variables
             elapsedTimeSeconds = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime()) - startTimeSeconds;
             timeLeftSeconds = matchDurationSeconds - elapsedTimeSeconds;
-            handleAndCallBlinks();
+            handleColors();
 
 
             // Have each module add debug data to the telemetry object so it can be sent to the
@@ -271,7 +271,7 @@ public class PenguinsTeleOp extends LinearOpMode {
         } // opModeActive loop ends
     }
 
-    public void handleAndCallBlinks() {
+    public void handleColors() {
         // Choose color based on time frame
         if (timeLeftSeconds < 10) {
             // Red for "HANG THIS INSTANT!!!"
