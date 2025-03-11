@@ -55,7 +55,7 @@ public class PenguinsArm {
     double armAngleDeg = 0;
     final double INITIAL_ARM_ENCODER = 600;
     final double DEGREES_PER_ARM_TICK = 0.018326206475;
-    final double MAX_ARM_ANGLE_DEGREES = 90.0;
+    final double MAX_ARM_ANGLE_DEGREES = 85.0;
 
     // The amount that the claw adds onto the robot's length
     double clawLengthAdditionalInches = 0.0;
