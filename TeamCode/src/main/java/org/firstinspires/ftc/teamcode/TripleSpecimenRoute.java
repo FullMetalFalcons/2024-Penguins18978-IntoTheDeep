@@ -78,7 +78,7 @@ public class TripleSpecimenRoute extends LinearOpMode {
         sleep(100);
         // Adjust robot positioning based on which color specimen is pre-loaded
         if (getHuskyLensColor() == HuskyColors.BLUE || gamepad1.a) {
-            scoringPositionYAddon = 11;
+            scoringPositionYAddon = 12;
             Light.setPosition(LED_BLUE);
         } else {
             scoringPositionYAddon = 13;
