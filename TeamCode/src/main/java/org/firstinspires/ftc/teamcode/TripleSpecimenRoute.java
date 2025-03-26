@@ -37,7 +37,7 @@ public class TripleSpecimenRoute extends LinearOpMode {
     int SCORING_POSITION_X = STARTING_POSITION_X;
     int SCORING_POSITION_Y = STARTING_POSITION_Y;
 
-    int PICKUP_POSITION_X = 41;
+    int PICKUP_POSITION_X = 39;
     int PICKUP_POSITION_Y = STARTING_POSITION_Y + 4;
 
     int PARKING_POSITION_X = 48;
