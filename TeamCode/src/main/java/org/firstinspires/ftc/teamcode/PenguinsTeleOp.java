@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 public class PenguinsTeleOp extends LinearOpMode {
     //Initialize motors, servos, sensors, imus, etc.
     DcMotorEx m1, m2, m3, m4, Arm, Slide, Hanger;
-    Servo Claw, Light;
+    Servo Claw, Wrist, Light;
 
     // 'Public static' vars can be viewed and changed on the web dashboard
     public static double REGULAR_ARM_POWER_UP = 1.0;
@@ -38,6 +38,10 @@ public class PenguinsTeleOp extends LinearOpMode {
     public final double LED_YELLOW = 0.38;
     public final double LED_GREEN = 0.5;
 
+    // Wrist constants
+    double WRIST_MIN;
+    double WRIST_MAX;
+    double WRIST_RANGE;
 
     // Match time variables
     public double startTimeSeconds;
@@ -86,6 +90,7 @@ public class PenguinsTeleOp extends LinearOpMode {
         Arm = penguinsArm.Arm;
         Slide = penguinsArm.Slide;
         Claw = penguinsArm.Claw;
+        Wrist = penguinsArm.Wrist;
         Hanger = penguinsArm.Hanger;
 
         Light = hardwareMap.get(Servo.class, "rightIndicatorLight");
@@ -100,6 +105,12 @@ public class PenguinsTeleOp extends LinearOpMode {
 
         //This is to keep track of the current (if any) auto arm slide Action in progress
         PenguinsArm.ArmSlideToPosition autoArmSlider = null;
+
+        // Set values of Wrist constants
+        WRIST_MIN = penguinsArm.WRITS_DEPLOYED;
+        WRIST_MAX = penguinsArm.WRIST_FOLDED;
+        WRIST_RANGE = WRIST_MAX - WRIST_MIN;
+
 
         waitForStart();
 
@@ -201,6 +212,11 @@ public class PenguinsTeleOp extends LinearOpMode {
                 // Closed Position
                 penguinsArm.setClawPosition(penguinsArm.CLAW_CLOSED);
             }
+
+            // Wrist Code
+            // Proportionally controls wrist with trigger (0.0 = MIN, 1.0 = MAX)
+            double wristInput = gamepad2.right_trigger * WRIST_RANGE;
+            penguinsArm.setWristPosition(WRIST_MIN + wristInput);
 
 
             // Hanging Arm Code

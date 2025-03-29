@@ -26,6 +26,8 @@ public class PenguinsArm {
         public DcMotorSimple.Direction hangerDirection = DcMotorSimple.Direction.REVERSE;
 
         public String clawName = "claw";
+
+        public String wristName = "wrist";
     }
 
 
@@ -46,6 +48,9 @@ public class PenguinsArm {
 
     public final double CLAW_OPEN = 0.3;
     public final double CLAW_CLOSED = 0.6;
+
+    public final double WRIST_FOLDED = 0.42;
+    public final double WRITS_DEPLOYED = 0.77;
 
     // Encoder storage variables for arm limits
     double slideLengthInches = 0;
@@ -80,6 +85,7 @@ public class PenguinsArm {
     public DcMotorEx Arm;
     public DcMotorEx Slide;
     public Servo Claw;
+    public Servo Wrist;
     public DcMotorEx Hanger;
 
     public PenguinsArm(HardwareMap hardwareMap, Telemetry telemetry1) {
@@ -91,6 +97,8 @@ public class PenguinsArm {
         Slide.setDirection(ARM_PARAMS.slideDirection);
 
         Claw = hardwareMap.get(Servo.class, ARM_PARAMS.clawName);
+
+        Wrist = hardwareMap.get(Servo.class, ARM_PARAMS.wristName);
 
         Hanger = hardwareMap.get(DcMotorEx.class, ARM_PARAMS.hangerName);
         Hanger.setDirection(ARM_PARAMS.hangerDirection);
@@ -175,6 +183,10 @@ public class PenguinsArm {
 
     public void setClawPosition(double desiredPosition) {
         Claw.setPosition(desiredPosition);
+    }
+
+    public void setWristPosition(double desiredPosition) {
+        Wrist.setPosition(desiredPosition);
     }
 
 
