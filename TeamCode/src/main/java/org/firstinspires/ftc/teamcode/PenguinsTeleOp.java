@@ -125,10 +125,10 @@ public class PenguinsTeleOp extends LinearOpMode {
             if (gamepad1.dpad_down || gamepad1.dpad_up || gamepad1.dpad_left || gamepad1.dpad_right) {
                 // This allows for driving via dpad as well
                 // Uses ternaries to make the code more compact (condition ? if true : if false)
-                px = gamepad1.dpad_left ? -0.2 : 0.0;
-                px = gamepad1.dpad_right ? 0.2 : px;
-                py = gamepad1.dpad_down ? -0.2 : 0.0;
-                py = gamepad1.dpad_up ? 0.2 : py;
+                px = gamepad1.dpad_left ? -0.3 : 0.0;
+                px = gamepad1.dpad_right ? 0.3 : px;
+                py = gamepad1.dpad_down ? -0.3 : 0.0;
+                py = gamepad1.dpad_up ? 0.3 : py;
             } else {
                 // If the dpad is not in use, drive via sticks
                 px = gamepad1.left_stick_x;
