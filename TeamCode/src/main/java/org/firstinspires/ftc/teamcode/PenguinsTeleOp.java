@@ -107,7 +107,7 @@ public class PenguinsTeleOp extends LinearOpMode {
         PenguinsArm.ArmSlideToPosition autoArmSlider = null;
 
         // Set values of Wrist constants
-        WRIST_MIN = penguinsArm.WRITS_DEPLOYED;
+        WRIST_MIN = penguinsArm.WRIST_DEPLOYED;
         WRIST_MAX = penguinsArm.WRIST_FOLDED;
         WRIST_RANGE = WRIST_MAX - WRIST_MIN;
 
