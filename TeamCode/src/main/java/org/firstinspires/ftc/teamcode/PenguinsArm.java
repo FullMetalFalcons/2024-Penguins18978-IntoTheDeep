@@ -55,7 +55,7 @@ public class PenguinsArm {
     // Encoder storage variables for arm limits
     double slideLengthInches = 0;
     double INITIAL_SLIDE_LENGTH_INCHES = 16.0;
-    double SIDE_CLAW_LENGTH_INCHES = 3.0;
+    double SIDE_CLAW_LENGTH_INCHES = 4.0;
     final double INCHES_PER_SLIDE_TICK = 0.00830154812;
 
     double armAngleDeg = 0;
