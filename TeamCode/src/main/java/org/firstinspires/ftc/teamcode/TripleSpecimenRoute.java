@@ -116,7 +116,7 @@ public class TripleSpecimenRoute extends LinearOpMode {
 
         Action drivingRoute2 = drive.actionBuilder(drive.pose)
                 // Move back to grab a second specimen
-                .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X, PICKUP_POSITION_Y ), Math.toRadians(0))
+                .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X, PICKUP_POSITION_Y + 6 ), Math.toRadians(0))
                 .strafeToLinearHeading(new Vector2d( PICKUP_POSITION_X, PICKUP_POSITION_Y ), 0)
                 // Pause to grab specimen
                 .build();
