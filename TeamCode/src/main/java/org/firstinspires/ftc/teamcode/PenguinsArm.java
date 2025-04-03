@@ -50,11 +50,12 @@ public class PenguinsArm {
     public final double CLAW_CLOSED = 0.6;
 
     public final double WRIST_FOLDED = 0.42;
-    public final double WRITS_DEPLOYED = 0.77;
+    public final double WRIST_DEPLOYED = 0.77;
 
     // Encoder storage variables for arm limits
     double slideLengthInches = 0;
     double INITIAL_SLIDE_LENGTH_INCHES = 16.0;
+    double SIDE_CLAW_LENGTH_INCHES = 3.0;
     final double INCHES_PER_SLIDE_TICK = 0.00830154812;
 
     double armAngleDeg = 0;
@@ -107,6 +108,9 @@ public class PenguinsArm {
         Arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         Slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         Hanger.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        // Finish setting up arm limit variables
+        INITIAL_SLIDE_LENGTH_INCHES += SIDE_CLAW_LENGTH_INCHES;
 
         // Reset the encoder positions
         resetArmEncoder();
@@ -217,7 +221,6 @@ public class PenguinsArm {
             super();
             targetClawPosition = clawPos;
         }
-
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
             Claw.setPosition(targetClawPosition);
@@ -227,6 +230,21 @@ public class PenguinsArm {
     public ClawToPosition clawToPosition(double clawPos) {
         return new ClawToPosition(clawPos);
     }
+
+    public class WristToPosition implements Action {
+        // Use constructor parameter to set target position
+        private double targetWristPosition;
+        public WristToPosition(double wristPos) {
+            super();
+            targetWristPosition = wristPos;
+        }
+        @Override
+        public boolean run(@NonNull TelemetryPacket packet) {
+            Wrist.setPosition(targetWristPosition);
+            return false;
+        }
+    }
+    public WristToPosition wristToPosition(double wristPos) { return new WristToPosition(wristPos); }
 
 
     public class ArmSlideToPosition implements Action {

@@ -99,15 +99,15 @@ public class TripleSpecimenRoute extends LinearOpMode {
         arm.setClawPosition(arm.CLAW_CLOSED);
 
 
-        Action drivingRoute1 =drive.actionBuilder(drive.pose)
+        Action drivingRoute1 = drive.actionBuilder(drive.pose)
                 // Move to push a sample into the Observation Zone
                 .splineToLinearHeading(new Pose2d(PICKUP_POSITION_X-10, PICKUP_POSITION_Y+20, Math.toRadians(90)), 0)
                 .splineToLinearHeading(new Pose2d(PICKUP_POSITION_X, PICKUP_POSITION_Y+42, Math.toRadians(90)), 0)
-                .strafeTo(new Vector2d(PICKUP_POSITION_X+6, PICKUP_POSITION_Y+42))
+                .strafeTo(new Vector2d(PICKUP_POSITION_X+7, PICKUP_POSITION_Y+42))
                 // Move straight down to push the sample
-                .strafeTo(new Vector2d(PICKUP_POSITION_X+6, PICKUP_POSITION_Y+5))
+                .strafeTo(new Vector2d(PICKUP_POSITION_X+7, PICKUP_POSITION_Y+5))
                 // Move out of the Zone and then back to Pickup Position
-                .strafeTo(new Vector2d(PICKUP_POSITION_X+6, PICKUP_POSITION_Y+10))
+                .strafeTo(new Vector2d(PICKUP_POSITION_X+7, PICKUP_POSITION_Y+10))
                 .strafeToLinearHeading(new Vector2d(PICKUP_POSITION_X-15, PICKUP_POSITION_Y), Math.toRadians(0))
                 // Wait for human player to place specimen
                 .waitSeconds(1)
@@ -141,6 +141,7 @@ public class TripleSpecimenRoute extends LinearOpMode {
 
         Actions.runBlocking(
                 new SequentialAction(
+                        arm.wristToPosition(arm.WRIST_DEPLOYED),
                         scoringRoute1,
                         drivingRoute1,
                         arm.armToPosition(arm.ARM_RESET_DEGREES, arm.SLIDE_RESET_INCHES, 10),
@@ -159,6 +160,7 @@ public class TripleSpecimenRoute extends LinearOpMode {
     public Action getNewScoringAction(int barOffsetX, int armOffset, int endTolerance) {
         return new SequentialAction(
                 new ParallelAction(
+                        arm.wristToPosition(arm.WRIST_DEPLOYED),
                         arm.armToPosition(arm.ARM_SPECIMEN_READY_DEGREES, arm.SLIDE_RESET_INCHES, 30),
                         drive.actionBuilder(drive.pose).strafeToLinearHeading(new Vector2d(SCORING_POSITION_X + barOffsetX, SCORING_POSITION_Y), Math.toRadians(90)).build()
                 ),
