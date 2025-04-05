@@ -10,10 +10,8 @@ import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
-import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.Servo;
 
 @Config
 @Autonomous
@@ -51,11 +49,24 @@ public class SampleRoute extends LinearOpMode {
                 .build();
 
         Action drivingRoute2 = drive.actionBuilder(drive.pose)
+                // Pick up 2nd Sample
+                .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X-2, SCORING_POSITION_Y+12), Math.toRadians(90))
+                .build();
+
+        Action drivingRoute3 = drive.actionBuilder(drive.pose)
+                // Move into Scoring Position
+                .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X, SCORING_POSITION_Y), Math.toRadians(225))
+                .build();
+
+        Action drivingRoute4 = drive.actionBuilder(drive.pose)
                 // Low level ascent
                 .strafeToConstantHeading(new Vector2d(-36, SCORING_POSITION_Y))
                 .strafeToLinearHeading(new Vector2d( -36, -24), Math.toRadians(90))
                 .splineToLinearHeading(new Pose2d( PARKING_POSITION_X, PARKING_POSITION_Y, 0), 0)
                 .build();
+
+        Action scoringRoute1 = getNewScoringAction(6);
+        Action scoringRoute2 = getNewScoringAction(6);
 
 
         waitForStart();
@@ -68,16 +79,34 @@ public class SampleRoute extends LinearOpMode {
                                 drivingRoute1,
                                 arm.armToPosition(65, 0, 50)
                         ),
-                        arm.armToPosition(65, 32, 10),
-                        arm.clawToPosition(arm.CLAW_OPEN),
+                        scoringRoute1,
+                        new ParallelAction(
+                                arm.armToPosition(20, 3, 50),
+                                drivingRoute2
+                        ),
+                        arm.armToPosition(8, 3, 50),
+                        arm.clawToPosition(arm.CLAW_CLOSED),
                         new SleepAction(0.75),
-                        arm.armToPosition(75, 32, 50),
-                        arm.armToPosition(75, 3, 50),
+                        new ParallelAction(
+                                arm.armToPosition(65, 3, 50),
+                                drivingRoute3
+                        ),
+                        scoringRoute2,
                         new ParallelAction(
                                 arm.armToPosition(50, 3, 50),
-                                drivingRoute2
+                                drivingRoute4
                         )
                 )
+        );
+    }
+
+    public Action getNewScoringAction(int endingSlideInches) {
+        return new SequentialAction(
+                arm.armToPosition(65, 32, 10),
+                arm.clawToPosition(arm.CLAW_OPEN),
+                new SleepAction(0.75),
+                arm.armToPosition(75, 32, 50),
+                arm.armToPosition(75, endingSlideInches, 50)
         );
     }
 }
