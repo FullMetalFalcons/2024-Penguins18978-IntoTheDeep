@@ -73,9 +73,14 @@ public class SampleRoute extends LinearOpMode {
 
         Action driveToPark = drive.actionBuilder(drive.pose)
                 // Low level ascent
+                .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X, PARKING_POSITION_Y), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d( PARKING_POSITION_X, PARKING_POSITION_Y), 0)
+
+                /*
                 .strafeToConstantHeading(new Vector2d(-36, SCORING_POSITION_Y))
                 .strafeToLinearHeading(new Vector2d( -36, -24), Math.toRadians(90))
                 .splineToLinearHeading(new Pose2d( PARKING_POSITION_X, PARKING_POSITION_Y, 0), 0)
+                */
                 .build();
 
         Action scoringRoute1 = getNewScoringAction(6);

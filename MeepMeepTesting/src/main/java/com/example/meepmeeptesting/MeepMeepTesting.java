@@ -45,9 +45,8 @@ public class MeepMeepTesting {
                 .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X, SCORING_POSITION_Y), Math.toRadians(225))
                 .waitSeconds(1)
                 // Low level ascent
-                .strafeToConstantHeading(new Vector2d(-36, SCORING_POSITION_Y))
-                .strafeToLinearHeading(new Vector2d( -36, -24), Math.toRadians(90))
-                .splineToLinearHeading(new Pose2d( PARKING_POSITION_X, PARKING_POSITION_Y, 0), 0)
+                .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X, PARKING_POSITION_Y), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d( PARKING_POSITION_X, PARKING_POSITION_Y), 0)
                 .build());
 
 
