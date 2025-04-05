@@ -38,16 +38,15 @@ public class PenguinsTeleOp extends LinearOpMode {
     public final double LED_YELLOW = 0.38;
     public final double LED_GREEN = 0.5;
 
-    // Wrist constants
-    double WRIST_MIN;
-    double WRIST_MAX;
-    double WRIST_RANGE;
-
     // Match time variables
     public double startTimeSeconds;
     public double matchDurationSeconds = 120;
     public double elapsedTimeSeconds;
     public double timeLeftSeconds;
+
+    // Wrist variables
+    boolean wristDeployed = true;
+    double lastRightTrigger;
 
 
     // HuskyLens variables
@@ -105,11 +104,6 @@ public class PenguinsTeleOp extends LinearOpMode {
 
         //This is to keep track of the current (if any) auto arm slide Action in progress
         PenguinsArm.ArmSlideToPosition autoArmSlider = null;
-
-        // Set values of Wrist constants
-        WRIST_MIN = penguinsArm.WRIST_DEPLOYED;
-        WRIST_MAX = penguinsArm.WRIST_FOLDED;
-        WRIST_RANGE = WRIST_MAX - WRIST_MIN;
 
 
         waitForStart();
@@ -213,10 +207,14 @@ public class PenguinsTeleOp extends LinearOpMode {
                 penguinsArm.setClawPosition(penguinsArm.CLAW_CLOSED);
             }
 
-            // Wrist Code
-            // Proportionally controls wrist with trigger (0.0 = MIN, 1.0 = MAX)
-            double wristInput = gamepad2.right_trigger * WRIST_RANGE;
-            penguinsArm.setWristPosition(WRIST_MIN + wristInput);
+            // Wrist Toggle Code
+            if (gamepad2.right_trigger > 0 && lastRightTrigger == 0) {
+                // Flip to the alternate state
+                wristDeployed = !wristDeployed;
+            }
+                // Set servo position based on state
+            penguinsArm.setWristPosition(wristDeployed ? penguinsArm.WRIST_DEPLOYED : penguinsArm.WRIST_FOLDED);
+            lastRightTrigger = gamepad2.right_trigger;
 
 
             // Hanging Arm Code
