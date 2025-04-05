@@ -30,6 +30,9 @@ public class SampleRoute extends LinearOpMode {
     int PARKING_POSITION_X = -20;
     int PARKING_POSITION_Y = -12;
 
+    int SCORING_ANGLE_DEGREES = 66;
+    int PRE_SCORING_LENGTH_INCHES = 10;
+
     PinpointDrive drive = null;
     PenguinsArm arm = null;
 
@@ -43,22 +46,32 @@ public class SampleRoute extends LinearOpMode {
         arm.setClawPosition(arm.CLAW_CLOSED);
 
 
-        Action drivingRoute1 = drive.actionBuilder(drive.pose)
+        Action driveToScoring1 = drive.actionBuilder(drive.pose)
                 // Move into Scoring Position
                 .splineToLinearHeading(new Pose2d( SCORING_POSITION_X, SCORING_POSITION_Y, Math.toRadians(225) ), Math.toRadians(180))
                 .build();
 
-        Action drivingRoute2 = drive.actionBuilder(drive.pose)
+        Action driveToSample1 = drive.actionBuilder(drive.pose)
                 // Pick up 2nd Sample
                 .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X-2, SCORING_POSITION_Y+12), Math.toRadians(90))
                 .build();
 
-        Action drivingRoute3 = drive.actionBuilder(drive.pose)
+        Action driveToScoring2 = drive.actionBuilder(drive.pose)
                 // Move into Scoring Position
                 .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X, SCORING_POSITION_Y), Math.toRadians(225))
                 .build();
 
-        Action drivingRoute4 = drive.actionBuilder(drive.pose)
+        Action driveToSample2 = drive.actionBuilder(drive.pose)
+                // Pick up 2nd Sample
+                .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X-12, SCORING_POSITION_Y+12), Math.toRadians(90))
+                .build();
+
+        Action driveToScoring3 = drive.actionBuilder(drive.pose)
+                // Move into Scoring Position
+                .strafeToLinearHeading(new Vector2d( SCORING_POSITION_X, SCORING_POSITION_Y), Math.toRadians(225))
+                .build();
+
+        Action driveToPark = drive.actionBuilder(drive.pose)
                 // Low level ascent
                 .strafeToConstantHeading(new Vector2d(-36, SCORING_POSITION_Y))
                 .strafeToLinearHeading(new Vector2d( -36, -24), Math.toRadians(90))
@@ -66,7 +79,8 @@ public class SampleRoute extends LinearOpMode {
                 .build();
 
         Action scoringRoute1 = getNewScoringAction(6);
-        Action scoringRoute2 = getNewScoringAction(3);
+        Action scoringRoute2 = getNewScoringAction(6);
+        Action scoringRoute3 = getNewScoringAction(10);
 
 
         waitForStart();
@@ -76,25 +90,37 @@ public class SampleRoute extends LinearOpMode {
                 new SequentialAction(
                         arm.wristToPosition(arm.WRIST_DEPLOYED),
                         new ParallelAction(
-                                drivingRoute1,
-                                arm.armToPosition(65, 0, 50)
+                                driveToScoring1,
+                                arm.armToPosition(SCORING_ANGLE_DEGREES, PRE_SCORING_LENGTH_INCHES, 50)
                         ),
                         scoringRoute1,
                         new ParallelAction(
                                 arm.armToPosition(20, 3, 50),
-                                drivingRoute2
+                                driveToSample1
                         ),
                         arm.armToPosition(8, 3, 50),
                         arm.clawToPosition(arm.CLAW_CLOSED),
                         new SleepAction(0.75),
                         new ParallelAction(
-                                arm.armToPosition(65, 3, 50),
-                                drivingRoute3
+                                arm.armToPosition(SCORING_ANGLE_DEGREES, PRE_SCORING_LENGTH_INCHES, 50),
+                                driveToScoring2
                         ),
                         scoringRoute2,
                         new ParallelAction(
+                                arm.armToPosition(20, 3, 50),
+                                driveToSample2
+                        ),
+                        arm.armToPosition(8, 3, 50),
+                        arm.clawToPosition(arm.CLAW_CLOSED),
+                        new SleepAction(0.75),
+                        new ParallelAction(
+                                arm.armToPosition(SCORING_ANGLE_DEGREES, PRE_SCORING_LENGTH_INCHES, 50),
+                                driveToScoring3
+                        ),
+                        scoringRoute3,
+                        new ParallelAction(
                                 arm.armToPosition(50, 3, 50),
-                                drivingRoute4
+                                driveToPark
                         )
                 )
         );
@@ -102,7 +128,7 @@ public class SampleRoute extends LinearOpMode {
 
     public Action getNewScoringAction(int endingSlideInches) {
         return new SequentialAction(
-                arm.armToPosition(65, 32, 10),
+                arm.armToPosition(SCORING_ANGLE_DEGREES, 32, 10),
                 arm.clawToPosition(arm.CLAW_OPEN),
                 new SleepAction(0.75),
                 arm.armToPosition(75, 32, 50),
