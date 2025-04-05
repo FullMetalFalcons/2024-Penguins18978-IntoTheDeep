@@ -66,7 +66,7 @@ public class SampleRoute extends LinearOpMode {
                 .build();
 
         Action scoringRoute1 = getNewScoringAction(6);
-        Action scoringRoute2 = getNewScoringAction(6);
+        Action scoringRoute2 = getNewScoringAction(3);
 
 
         waitForStart();
